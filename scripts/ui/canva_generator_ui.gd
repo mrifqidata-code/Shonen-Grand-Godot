@@ -12,7 +12,9 @@ extends Control
 @onready var log_label = $VBox/LogLabel
 
 var canva_service: CanvaService
+var canva_downloader: CanvaDownloader
 var current_design_id: String = ""
+var last_download_path: String = ""
 
 func _ready():
     $VBox/BackBtn.pressed.connect(func(): SceneManager.change_scene("res://scenes/main.tscn"))
@@ -23,6 +25,10 @@ func _ready():
     canva_service.design_created.connect(_on_design_created)
     canva_service.design_exported.connect(_on_design_exported)
     canva_service.error_occurred.connect(_on_error)
+    
+    canva_downloader = CanvaDownloader.new()
+    add_child(canva_downloader)
+    canva_downloader.download_completed.connect(_on_download_completed)
     
     auth_btn.pressed.connect(func(): canva_service.open_auth_url())
     check_btn.pressed.connect(func(): canva_service.check_auth_status())
@@ -68,10 +74,27 @@ func _on_export_design():
 
 func _on_design_exported(data: Dictionary):
     if data.has("downloadUrl"):
-        log("Exported! Download: " + data["downloadUrl"])
-        OS.shell_open(data["downloadUrl"])
+        var url = data["downloadUrl"]
+        log("Exported! Downloading...")
+        var asset_name = name_input.text.strip_edges()
+        if asset_name.is_empty():
+            asset_name = "asset"
+        # Sanitize filename
+        asset_name = asset_name.to_lower().replace(" ", "_")
+        var save_path = canva_downloader.get_save_directory() + asset_name
+        canva_downloader.download_file(url, save_path)
     else:
         log("Export complete. Check Canva.")
+
+func _on_download_completed(file_path: String, success: bool):
+    if success:
+        last_download_path = file_path
+        log("✅ Downloaded: " + file_path)
+        # Show in file manager (Windows)
+        if OS.get_name() == "Windows":
+            OS.shell_open(file_path.get_base_dir())
+    else:
+        log("❌ Download failed")
 
 func _on_error(msg: String):
     log("Error: " + msg)
