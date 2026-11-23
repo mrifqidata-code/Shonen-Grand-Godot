@@ -34,4 +34,3 @@ textures/vram_compression/import_etc2_astc=true
 
 [gui]
 
-theme/custom="res://resources/themes/main_theme.tres"

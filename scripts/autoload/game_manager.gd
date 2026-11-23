@@ -153,6 +153,8 @@ func star_up_hero(hero_id: String) -> bool:
             break
     save_game()
     return true
+
+func get_player_heroes() -> Array:
     var team = get_team()
     var result = []
     for slot in team.get("slots", []):
