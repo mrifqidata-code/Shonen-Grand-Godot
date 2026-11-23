@@ -1,0 +1,16 @@
+{
+  "name": "shonen-grand-canva-backend",
+  "version": "0.1.0",
+  "description": "Backend for Canva Connect API integration - Shonen Grand asset generator",
+  "type": "module",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "dotenv": "^16.4.0",
+    "axios": "^1.7.0",
+    "cors": "^2.8.5"
+  }
+}
