@@ -1,0 +1,15 @@
+# Godot
+.godot/
+*.tmp
+*.log
+
+# Exports
+export/
+*.apk
+*.aab
+*.exe
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
