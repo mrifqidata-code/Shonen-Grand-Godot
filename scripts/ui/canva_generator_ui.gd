@@ -90,7 +90,22 @@ func _on_download_completed(file_path: String, success: bool):
     if success:
         last_download_path = file_path
         log("✅ Downloaded: " + file_path)
-        # Show in file manager (Windows)
+        
+        # Auto-import to res:// (editor only)
+        if Engine.is_editor_hint():
+            var importer = AssetImporter.new()
+            add_child(importer)
+            importer.import_completed.connect(func(src, dst, ok):
+                if ok:
+                    log("✅ Imported to: " + dst)
+                else:
+                    log("⚠️ Import failed (run in editor)")
+            )
+            importer.import_file(file_path, "assets/sprites/heroes/")
+        else:
+            log("⚠️ Run in Godot Editor to auto-import to project")
+        
+        # Open file location
         if OS.get_name() == "Windows":
             OS.shell_open(file_path.get_base_dir())
     else:
