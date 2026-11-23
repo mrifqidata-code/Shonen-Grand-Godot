@@ -1,0 +1,79 @@
+[gd_scene load_steps=2 format=3 uid="uid://main_scene"]
+
+[ext_resource type="Script" path="res://scripts/ui/main_ui.gd" id="1_main"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.04, 0.05, 0.1, 1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+
+[node name="Title" type="Label" parent="VBox"]
+layout_mode = 2
+text = "SHONEN GRAND"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 36
+
+[node name="Subtitle" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Anime Idle RPG"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+
+[node name="Spacer" type="Control" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="MenuButtons" type="VBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BtnHome" type="Button" parent="VBox/MenuButtons"]
+layout_mode = 2
+text = "🏠 Home"
+custom_minimum_size = Vector2(0, 50)
+
+[node name="BtnHeroes" type="Button" parent="VBox/MenuButtons"]
+layout_mode = 2
+text = "⚔️ Heroes"
+custom_minimum_size = Vector2(0, 50)
+
+[node name="BtnTeam" type="Button" parent="VBox/MenuButtons"]
+layout_mode = 2
+text = "👥 Team"
+custom_minimum_size = Vector2(0, 50)
+
+[node name="BtnBattle" type="Button" parent="VBox/MenuButtons"]
+layout_mode = 2
+text = "⚔️ Battle"
+custom_minimum_size = Vector2(0, 50)
+
+[node name="BtnSummon" type="Button" parent="VBox/MenuButtons"]
+layout_mode = 2
+text = "✨ Summon"
+custom_minimum_size = Vector2(0, 50)
+
+[node name="BtnInventory" type="Button" parent="VBox/MenuButtons"]
+layout_mode = 2
+text = "🎒 Inventory"
+custom_minimum_size = Vector2(0, 50)

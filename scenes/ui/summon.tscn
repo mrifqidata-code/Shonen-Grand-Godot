@@ -1,0 +1,110 @@
+[gd_scene load_steps=2 format=3 uid="uid://summon_scene"]
+
+[ext_resource type="Script" path="res://scripts/ui/summon_ui.gd" id="1_summon"]
+
+[node name="Summon" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_summon")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.04, 0.05, 0.1, 1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+theme_override_constants/separation = 12
+
+[node name="Header" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Summon Hero"
+theme_override_font_sizes/font_size = 20
+
+[node name="TicketPanel" type="PanelContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="VBox/TicketPanel"]
+layout_mode = 2
+
+[node name="TicketLabel" type="Label" parent="VBox/TicketPanel/VBox"]
+layout_mode = 2
+text = "Ticket Tersedia: 0"
+horizontal_alignment = 1
+name = "TicketLabel"
+
+[node name="BtnRow" type="HBoxContainer" parent="VBox/TicketPanel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="Summon1Btn" type="Button" parent="VBox/TicketPanel/VBox/BtnRow"]
+layout_mode = 2
+text = "Summon x1 (1 🎫)"
+name = "Summon1Btn"
+
+[node name="Summon10Btn" type="Button" parent="VBox/TicketPanel/VBox/BtnRow"]
+layout_mode = 2
+text = "Summon x10 (10 🎫)"
+name = "Summon10Btn"
+
+[node name="ResultPanel" type="PanelContainer" parent="VBox"]
+layout_mode = 2
+visible = false
+name = "ResultPanel"
+
+[node name="VBox" type="VBoxContainer" parent="VBox/ResultPanel"]
+layout_mode = 2
+
+[node name="ResultTitle" type="Label" parent="VBox/ResultPanel/VBox"]
+layout_mode = 2
+text = "✨ Hasil Summon"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+
+[node name="ResultName" type="Label" parent="VBox/ResultPanel/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 22
+name = "ResultName"
+
+[node name="ResultInfo" type="Label" parent="VBox/ResultPanel/VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+name = "ResultInfo"
+
+[node name="RateUpLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Rate-Up Banner (Featured SSR+)"
+theme_override_font_sizes/font_size = 16
+
+[node name="Scroll" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="FeaturedGrid" type="GridContainer" parent="VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 3
+name = "FeaturedGrid"
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="BackBtn" type="Button" parent="VBox"]
+layout_mode = 2
+text = "← Kembali ke Menu"
+custom_minimum_size = Vector2(0, 40)

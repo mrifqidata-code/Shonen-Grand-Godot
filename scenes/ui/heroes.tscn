@@ -1,0 +1,59 @@
+[gd_scene load_steps=2 format=3 uid="uid://heroes_scene"]
+
+[ext_resource type="Script" path="res://scripts/ui/heroes_ui.gd" id="1_heroes"]
+
+[node name="Heroes" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_heroes")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.04, 0.05, 0.1, 1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+
+[node name="Header" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Hero Koleksi"
+theme_override_font_sizes/font_size = 20
+
+[node name="CountLabel" type="Label" parent="VBox/Header"]
+layout_mode = 2
+text = "(0)"
+name = "CountLabel"
+
+[node name="Scroll" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Grid" type="GridContainer" parent="VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 1
+name = "HeroGrid"
+theme_override_constants/v_separation = 8
+
+[node name="BackBtn" type="Button" parent="VBox"]
+layout_mode = 2
+text = "← Kembali ke Menu"
+custom_minimum_size = Vector2(0, 40)

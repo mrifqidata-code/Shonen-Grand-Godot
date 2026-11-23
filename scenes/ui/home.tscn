@@ -1,0 +1,203 @@
+[gd_scene load_steps=2 format=3 uid="uid://home_scene"]
+
+[ext_resource type="Script" path="res://scripts/ui/home_ui.gd" id="1_home"]
+
+[node name="Home" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_home")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.04, 0.05, 0.1, 1)
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = -16.0
+
+[node name="VBox" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Header" type="Label" parent="Scroll/VBox"]
+layout_mode = 2
+text = "Selamat Datang di Shonen Grand!"
+theme_override_font_sizes/font_size = 20
+
+[node name="StatsGrid" type="GridContainer" parent="Scroll/VBox"]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="LevelBox" type="PanelContainer" parent="Scroll/VBox/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/VBox/StatsGrid/LevelBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/VBox/StatsGrid/LevelBox/VBox"]
+layout_mode = 2
+text = "Level"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="Scroll/VBox/StatsGrid/LevelBox/VBox"]
+layout_mode = 2
+text = "1"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+name = "LevelValue"
+
+[node name="GoldBox" type="PanelContainer" parent="Scroll/VBox/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/VBox/StatsGrid/GoldBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/VBox/StatsGrid/GoldBox/VBox"]
+layout_mode = 2
+text = "Gold"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="Scroll/VBox/StatsGrid/GoldBox/VBox"]
+layout_mode = 2
+text = "0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+name = "GoldValue"
+
+[node name="DiamondBox" type="PanelContainer" parent="Scroll/VBox/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/VBox/StatsGrid/DiamondBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/VBox/StatsGrid/DiamondBox/VBox"]
+layout_mode = 2
+text = "Diamond"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="Scroll/VBox/StatsGrid/DiamondBox/VBox"]
+layout_mode = 2
+text = "0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+name = "DiamondValue"
+
+[node name="TicketBox" type="PanelContainer" parent="Scroll/VBox/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/VBox/StatsGrid/TicketBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Scroll/VBox/StatsGrid/TicketBox/VBox"]
+layout_mode = 2
+text = "Ticket"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="Scroll/VBox/StatsGrid/TicketBox/VBox"]
+layout_mode = 2
+text = "0"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+name = "TicketValue"
+
+[node name="IdlePanel" type="PanelContainer" parent="Scroll/VBox"]
+layout_mode = 2
+name = "IdlePanel"
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/VBox/IdlePanel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Scroll/VBox/IdlePanel/VBox"]
+layout_mode = 2
+text = "🎁 Idle Rewards Tersedia!"
+theme_override_font_sizes/font_size = 16
+
+[node name="TimeLabel" type="Label" parent="Scroll/VBox/IdlePanel/VBox"]
+layout_mode = 2
+text = "Waktu idle: 0s"
+name = "IdleTimeLabel"
+
+[node name="RewardLabel" type="Label" parent="Scroll/VBox/IdlePanel/VBox"]
+layout_mode = 2
+text = "💰 0 Gold • ⭐ 0 EXP • 🎫 0 Ticket"
+name = "IdleRewardLabel"
+
+[node name="ClaimBtn" type="Button" parent="Scroll/VBox/IdlePanel/VBox"]
+layout_mode = 2
+text = "Klaim Rewards"
+name = "ClaimIdleBtn"
+
+[node name="CampaignPanel" type="PanelContainer" parent="Scroll/VBox"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="Scroll/VBox/CampaignPanel"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Scroll/VBox/CampaignPanel/VBox"]
+layout_mode = 2
+text = "Progress Campaign"
+theme_override_font_sizes/font_size = 16
+
+[node name="HBox" type="HBoxContainer" parent="Scroll/VBox/CampaignPanel/VBox"]
+layout_mode = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="Scroll/VBox/CampaignPanel/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+value = 0.0
+name = "CampaignProgress"
+
+[node name="StageLabel" type="Label" parent="Scroll/VBox/CampaignPanel/VBox/HBox"]
+layout_mode = 2
+text = "Stage 1"
+name = "StageLabel"
+
+[node name="QuickActions" type="GridContainer" parent="Scroll/VBox"]
+layout_mode = 2
+columns = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="BtnBattle" type="Button" parent="Scroll/VBox/QuickActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "⚔️ Battle"
+custom_minimum_size = Vector2(0, 40)
+
+[node name="BtnSummon" type="Button" parent="Scroll/VBox/QuickActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "✨ Summon"
+custom_minimum_size = Vector2(0, 40)
+
+[node name="BtnTeam" type="Button" parent="Scroll/VBox/QuickActions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "👥 Team"
+custom_minimum_size = Vector2(0, 40)
+
+[node name="BackBtn" type="Button" parent="Scroll/VBox"]
+layout_mode = 2
+text = "← Kembali ke Menu"
+custom_minimum_size = Vector2(0, 40)
