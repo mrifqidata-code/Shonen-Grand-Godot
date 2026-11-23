@@ -8,3 +8,4 @@ func _ready():
     $VBox/MenuButtons/BtnBattle.pressed.connect(func(): SceneManager.change_scene("res://scenes/ui/battle.tscn"))
     $VBox/MenuButtons/BtnSummon.pressed.connect(func(): SceneManager.change_scene("res://scenes/ui/summon.tscn"))
     $VBox/MenuButtons/BtnInventory.pressed.connect(func(): SceneManager.change_scene("res://scenes/ui/inventory.tscn"))
+    $VBox/MenuButtons/BtnCanva.pressed.connect(func(): SceneManager.change_scene("res://scenes/ui/canva_generator.tscn"))
