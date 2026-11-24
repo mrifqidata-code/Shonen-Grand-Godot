@@ -20,7 +20,10 @@ shonen-grand-godot/
 │   ├── autoload/    # GameManager, SceneManager, AudioManager
 │   ├── domain/      # Hero, Faction, Battle engine
 │   ├── data/        # Hero templates
-│   └── ui/          # UI controllers
+│   ├── services/    # Canva client, sprite factory, asset importer
+│   └── ui/          # UI controllers (termasuk CharacterView)
+├── tools/           # Script headless: render sample gaya, screenshot scene
+├── docs/            # Panduan (lihat CHARACTER_STYLE_GUIDE.md)
 └── resources/       # Themes, hero data
 ```
 
@@ -39,6 +42,9 @@ shonen-grand-godot/
 - ✅ Upgrade & star up hero
 - ✅ Campaign battle dengan enemy scaling
 - ✅ Save/load (JSON di user://)
+- ✅ 5 opsi gaya tampilan karakter (pixel 16/32/64, chibi HD 128, anime HD 256)
+  → lihat [docs/CHARACTER_STYLE_GUIDE.md](docs/CHARACTER_STYLE_GUIDE.md)
+- ✅ Preview karakter di kartu hero, tim, dan battle (CharacterView)
 
 ## 📱 Export ke Android
 1. Project → Export → Add → Android
@@ -46,7 +52,12 @@ shonen-grand-godot/
 3. Export APK
 
 ## 🎨 Asset
-Asset akan di-generate dengan Canva AI. Placeholder sprite menggunakan ColorRect sementara.
+Asset akan di-generate dengan Canva AI. Placeholder karakter digambar prosedural
+(`character_sprite_factory.gd`) dan otomatis diganti art asli bila file tersedia di
+`res://assets/sprites/heroes/<Origin>/<style_id>.png`.
+
+Perbandingan 5 gaya: buka **🎭 Gaya Karakter** di game, atau lihat
+`assets/sprites/style_samples/`.
 
 ## 📄 License
 MIT

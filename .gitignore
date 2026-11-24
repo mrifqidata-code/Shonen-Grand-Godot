@@ -13,3 +13,7 @@ export/
 # OS
 .DS_Store
 Thumbs.db
+
+# Signing secrets — never commit
+*.keystore
+*.jks

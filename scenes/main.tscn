@@ -82,3 +82,8 @@ custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "🎨 Canva Generator"
 custom_minimum_size = Vector2(0, 50)
+
+[node name="BtnStyle" type="Button" parent="VBox/MenuButtons"]
+layout_mode = 2
+text = "🎭 Gaya Karakter"
+custom_minimum_size = Vector2(0, 50)

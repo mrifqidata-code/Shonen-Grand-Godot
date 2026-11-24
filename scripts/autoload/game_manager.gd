@@ -17,6 +17,11 @@ var progress: Dictionary = {
 var heroes: Array = []
 var teams: Array = []
 
+# Player preferences (art style, toggles). Not reset by init_new_game().
+var settings: Dictionary = {
+    "character_style": "chibi128",
+}
+
 const SAVE_PATH = "user://save.json"
 const MAX_IDLE_HOURS = 8
 
@@ -58,6 +63,7 @@ func save_game():
         "progress": progress,
         "heroes": heroes,
         "teams": teams,
+        "settings": settings,
     }
     var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
     if file:
@@ -78,6 +84,17 @@ func load_game():
             progress = data.get("progress", progress)
             heroes = data.get("heroes", [])
             teams = data.get("teams", [])
+            settings = data.get("settings", settings)
+
+func get_character_style() -> String:
+    var style: String = str(settings.get("character_style", "chibi128"))
+    if style.is_empty():
+        style = "chibi128"
+    return style
+
+func set_character_style(style_id: String):
+    settings["character_style"] = style_id
+    save_game()
 
 func get_hero_by_id(hero_id: String) -> Dictionary:
     for h in heroes:

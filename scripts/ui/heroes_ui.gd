@@ -1,6 +1,8 @@
 # scripts/ui/heroes_ui.gd
 extends Control
 
+const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
+
 @onready var hero_grid = $VBox/Scroll/HeroGrid
 @onready var count_label = $VBox/Header/CountLabel
 
@@ -20,35 +22,48 @@ func refresh_heroes():
     # Clear existing
     for child in hero_grid.get_children():
         child.queue_free()
-    
+
     var heroes = GameManager.heroes
     count_label.text = "(%d)" % heroes.size()
-    
+
     if heroes.is_empty():
         var empty_label = Label.new()
         empty_label.text = "Belum ada hero. Summon dulu!"
         empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         hero_grid.add_child(empty_label)
         return
-    
+
     for hero in heroes:
         var card = create_hero_card(hero)
         hero_grid.add_child(card)
 
 func create_hero_card(hero: Dictionary) -> PanelContainer:
     var panel = PanelContainer.new()
-    panel.custom_minimum_size = Vector2(0, 120)
-    
+    panel.custom_minimum_size = Vector2(0, 132)
+
+    var row = HBoxContainer.new()
+    row.add_theme_constant_override("separation", 10)
+    panel.add_child(row)
+
+    # Character avatar using the display style chosen in "Gaya Karakter"
+    var avatar = CharacterViewScript.new()
+    avatar.custom_minimum_size = Vector2(68, 68)
+    avatar.style_id = GameManager.get_character_style()
+    avatar.anime_origin = str(hero.get("anime_origin", "Default"))
+    avatar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    row.add_child(avatar)
+
     var vbox = VBoxContainer.new()
-    panel.add_child(vbox)
-    
+    vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    row.add_child(vbox)
+
     # Name + rarity
     var name_label = Label.new()
     name_label.text = hero["hero_name"]
     name_label.add_theme_color_override("font_color", RARITY_COLORS.get(hero["rarity"], Color.WHITE))
     name_label.add_theme_font_size_override("font_size", 16)
     vbox.add_child(name_label)
-    
+
     # Info
     var info = Label.new()
     var faction_name = Faction.get_name(hero["faction"])
@@ -56,33 +71,33 @@ func create_hero_card(hero: Dictionary) -> PanelContainer:
     info.add_theme_font_size_override("font_size", 11)
     info.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
     vbox.add_child(info)
-    
+
     # Stats
     var stats = Label.new()
     stats.text = "⭐%d • Lv.%d • LB%d" % [hero["star_level"], hero["level"], hero["limit_break"]]
     stats.add_theme_font_size_override("font_size", 12)
     vbox.add_child(stats)
-    
+
     var stats2 = Label.new()
     stats2.text = "HP:%d ATK:%d DEF:%d" % [hero["base_hp"], hero["base_atk"], hero["base_def"]]
     stats2.add_theme_font_size_override("font_size", 11)
     vbox.add_child(stats2)
-    
+
     # Buttons
     var hbox = HBoxContainer.new()
     vbox.add_child(hbox)
-    
+
     var upgrade_btn = Button.new()
     upgrade_btn.text = "Upgrade (%dg)" % (hero["level"] * 50)
     upgrade_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     upgrade_btn.pressed.connect(func(): _on_upgrade(hero["id"]))
     hbox.add_child(upgrade_btn)
-    
+
     var star_btn = Button.new()
     star_btn.text = "Star Up"
     star_btn.pressed.connect(func(): _on_star_up(hero["id"]))
     hbox.add_child(star_btn)
-    
+
     return panel
 
 func _on_upgrade(hero_id: String):

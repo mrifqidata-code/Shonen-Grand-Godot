@@ -142,10 +142,9 @@ layout_mode = 2
 text = "💰 0 Gold • ⭐ 0 EXP • 🎫 0 Ticket"
 name = "IdleRewardLabel"
 
-[node name="ClaimBtn" type="Button" parent="Scroll/VBox/IdlePanel/VBox"]
+[node name="ClaimIdleBtn" type="Button" parent="Scroll/VBox/IdlePanel/VBox"]
 layout_mode = 2
 text = "Klaim Rewards"
-name = "ClaimIdleBtn"
 
 [node name="CampaignPanel" type="PanelContainer" parent="Scroll/VBox"]
 layout_mode = 2
