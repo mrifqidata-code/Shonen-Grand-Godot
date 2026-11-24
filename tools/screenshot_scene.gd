@@ -9,6 +9,7 @@ extends SceneTree
 
 var _scene_path := "res://scenes/ui/character_style.tscn"
 var _out_path := "res://screenshots/screenshot.png"
+var _call := ""
 
 
 func _initialize() -> void:
@@ -17,13 +18,24 @@ func _initialize() -> void:
             _scene_path = arg.trim_prefix("--scene=")
         elif arg.begins_with("--out="):
             _out_path = arg.trim_prefix("--out=")
+        elif arg.begins_with("--call="):
+            _call = arg.trim_prefix("--call=")
 
     var packed: PackedScene = load(_scene_path)
     if packed == null:
         push_error("Cannot load scene: " + _scene_path)
         quit(1)
         return
-    root.add_child(packed.instantiate())
+    var instance := packed.instantiate()
+    root.add_child(instance)
+    if not _call.is_empty():
+        # e.g. --call=_on_start_battle to capture the post-battle state
+        var call_timer := Timer.new()
+        call_timer.one_shot = true
+        call_timer.wait_time = 0.6
+        call_timer.autostart = true
+        call_timer.timeout.connect(func(): instance.call(_call))
+        root.add_child(call_timer)
 
     var timer := Timer.new()
     timer.one_shot = true

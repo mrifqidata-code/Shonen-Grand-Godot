@@ -8,6 +8,7 @@ extends Control
 @onready var result_name = $VBox/ResultPanel/VBox/ResultName
 @onready var result_info = $VBox/ResultPanel/VBox/ResultInfo
 @onready var featured_grid = $VBox/Scroll/FeaturedGrid
+@onready var status_label = $VBox/TicketPanel/VBox/StatusLabel
 
 const RARITY_COLORS = {
     "SSR": Color(0.8, 0.8, 0.8),
@@ -29,24 +30,31 @@ func update_ticket_label():
 
 func _on_summon(count: int):
     if GameManager.progress["tickets"] < count:
+        status_label.text = "🎫 Ticket tidak cukup (%d/%d). Klaim idle reward dulu di Home." % [GameManager.progress["tickets"], count]
+        status_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.4))
         return
-    
+
     var last_hero = null
+    var pulled = 0
+    var templates = HeroesData.get_all_templates()
     for i in range(count):
         if not GameManager.spend_tickets(1):
             break
-        var templates = HeroesData.get_all_templates()
         var template = templates[randi() % templates.size()]
         var hero = HeroesData.create_hero_from_template(template)
         GameManager.add_hero(hero)
         last_hero = hero
-    
+        pulled += 1
+
     if last_hero != null:
         result_panel.visible = true
         result_name.text = last_hero["hero_name"]
         result_name.add_theme_color_override("font_color", RARITY_COLORS.get(last_hero["rarity"], Color.WHITE))
         result_info.text = "%s • %s • %s" % [last_hero["rarity"], last_hero["hero_class"], last_hero["anime_origin"]]
-    
+        var team_count = GameManager.get_team_hero_count()
+        status_label.text = "✅ %d hero didapat • Tim: %d/6 hero (otomatis diisi)" % [pulled, team_count]
+        status_label.add_theme_color_override("font_color", Color(0.5, 0.9, 0.55))
+
     update_ticket_label()
 
 func load_featured():

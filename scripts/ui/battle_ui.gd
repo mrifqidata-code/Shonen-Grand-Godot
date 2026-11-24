@@ -15,6 +15,7 @@ const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
 
 var team_row: HBoxContainer
 var team_title: Label
+var no_team_box: VBoxContainer
 
 func _ready():
     $VBox/BackBtn.pressed.connect(func(): SceneManager.change_scene("res://scenes/main.tscn"))
@@ -22,6 +23,7 @@ func _ready():
     ok_btn.pressed.connect(func(): result_panel.visible = false)
     stage_input.value = GameManager.progress["current_campaign_stage"]
     _setup_team_row()
+    _setup_no_team_notice()
     update_info()
     refresh_enemy_preview()
 
@@ -42,10 +44,49 @@ func _setup_team_row():
     $VBox.move_child(team_title, info_index + 1)
     $VBox.move_child(team_row, info_index + 2)
 
+func _setup_no_team_notice():
+    no_team_box = VBoxContainer.new()
+    no_team_box.visible = false
+    no_team_box.add_theme_constant_override("separation", 6)
+
+    var msg = Label.new()
+    msg.text = "⚠️ Tim kamu masih kosong.\nSummon hero dulu, lalu tekan Start Battle lagi."
+    msg.add_theme_font_size_override("font_size", 12)
+    msg.add_theme_color_override("font_color", Color(1.0, 0.82, 0.35))
+    msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    no_team_box.add_child(msg)
+
+    var row = HBoxContainer.new()
+    row.add_theme_constant_override("separation", 8)
+    no_team_box.add_child(row)
+
+    var summon_btn = Button.new()
+    summon_btn.text = "🎁 Summon Hero"
+    summon_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    summon_btn.pressed.connect(func(): SceneManager.change_scene("res://scenes/ui/summon.tscn"))
+    row.add_child(summon_btn)
+
+    var team_btn = Button.new()
+    team_btn.text = "👥 Atur Tim"
+    team_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    team_btn.pressed.connect(func(): SceneManager.change_scene("res://scenes/ui/team.tscn"))
+    row.add_child(team_btn)
+
+    $VBox.add_child(no_team_box)
+    $VBox.move_child(no_team_box, $VBox/InfoLabel.get_index() + 1)
+
 func update_info():
     var heroes = GameManager.get_player_heroes()
     info_label.text = "Tim: %d hero • Stage saat ini: %d" % [heroes.size(), GameManager.progress["current_campaign_stage"]]
+    if no_team_box:
+        no_team_box.visible = heroes.is_empty()
     _refresh_team_row(heroes)
+
+func _show_no_team_notice():
+    no_team_box.visible = true
+    no_team_box.modulate = Color(1.8, 1.8, 1.8)
+    var tween = create_tween()
+    tween.tween_property(no_team_box, "modulate", Color.WHITE, 0.4)
 
 func _refresh_team_row(heroes: Array):
     for child in team_row.get_children():
@@ -118,10 +159,18 @@ func _on_start_battle():
     var stage = int(stage_input.value)
     var player_heroes = GameManager.get_player_heroes()
     if player_heroes.is_empty():
+        update_info()
+        _show_no_team_notice()
         return
+
+    start_btn.disabled = true
+    start_btn.text = "⏳ Bertarung..."
 
     var enemies = BattleEngine.generate_enemy_team(stage)
     var result = BattleEngine.simulate_battle(player_heroes, enemies)
+
+    start_btn.disabled = false
+    start_btn.text = "⚔️ Start Battle"
 
     # Apply rewards
     if result["winner"] == "player":

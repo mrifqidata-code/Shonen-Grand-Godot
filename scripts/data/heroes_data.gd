@@ -252,9 +252,17 @@ static func get_all_templates() -> Array:
         },
     ]
 
+static func get_template_by_id(template_id: String) -> Dictionary:
+    for t in get_all_templates():
+        if t["id"] == template_id:
+            return t.duplicate(true)
+    return {}
+
 static func create_hero_from_template(template: Dictionary) -> Dictionary:
+    # Unique per instance: 10x summon in the same frame must not share an id.
+    var stamp = int(Time.get_unix_time_from_system() * 1000.0)
     return {
-        "id": template["id"] + "_" + str(Time.get_unix_time_from_system()),
+        "id": "%s_%d_%d" % [template["id"], stamp, randi() % 100000],
         "hero_name": template["hero_name"],
         "hero_class": template["hero_class"],
         "faction": template["faction"],

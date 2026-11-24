@@ -99,6 +99,24 @@ func refresh_ui():
         
         hero_list.add_child(card)
 
+    if heroes.is_empty():
+        var empty_box = VBoxContainer.new()
+        empty_box.add_theme_constant_override("separation", 6)
+
+        var empty_label = Label.new()
+        empty_label.text = "Belum punya hero.\nSummon dulu, hero baru otomatis masuk slot tim kosong."
+        empty_label.add_theme_font_size_override("font_size", 12)
+        empty_label.add_theme_color_override("font_color", Color(1.0, 0.82, 0.35))
+        empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+        empty_box.add_child(empty_label)
+
+        var summon_btn = Button.new()
+        summon_btn.text = "🎁 Summon Hero"
+        summon_btn.pressed.connect(func(): SceneManager.change_scene("res://scenes/ui/summon.tscn"))
+        empty_box.add_child(summon_btn)
+
+        hero_list.add_child(empty_box)
+
 func _on_add_hero(hero_id: String):
     var team = GameManager.get_team()
     # Find first empty slot

@@ -25,6 +25,9 @@ var settings: Dictionary = {
 const SAVE_PATH = "user://save.json"
 const MAX_IDLE_HOURS = 8
 
+# Granted once to an empty account so the player can battle immediately.
+const STARTER_HERO_IDS = ["naruto_uzumaki", "luffy_monkey", "ichigo_kurosaki"]
+
 func _ready():
     load_game()
     if progress["idle_accumulated_at"] == 0:
@@ -44,18 +47,7 @@ func init_new_game():
         "last_login": Time.get_unix_time_from_system(),
     }
     heroes = []
-    teams = [{
-        "id": "team_1",
-        "name": "Main Team",
-        "slots": [
-            {"position": 1, "hero_id": null},
-            {"position": 2, "hero_id": null},
-            {"position": 3, "hero_id": null},
-            {"position": 4, "hero_id": null},
-            {"position": 5, "hero_id": null},
-            {"position": 6, "hero_id": null},
-        ]
-    }]
+    teams = [_default_team()]
     save_game()
 
 func save_game():
@@ -73,18 +65,83 @@ func save_game():
 func load_game():
     if not FileAccess.file_exists(SAVE_PATH):
         init_new_game()
+    else:
+        var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+        if file:
+            var json = JSON.new()
+            var err = json.parse(file.get_as_text())
+            file.close()
+            if err == OK:
+                var data = json.get_data()
+                progress = data.get("progress", progress)
+                heroes = data.get("heroes", [])
+                teams = data.get("teams", [])
+                settings = data.get("settings", settings)
+    _ensure_starter_heroes()
+    _ensure_team_slots()
+    # Older saves may hold heroes that were never placed on the team.
+    _fill_empty_team_slots()
+
+func _ensure_starter_heroes():
+    if not heroes.is_empty():
         return
-    var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
-    if file:
-        var json = JSON.new()
-        var err = json.parse(file.get_as_text())
-        file.close()
-        if err == OK:
-            var data = json.get_data()
-            progress = data.get("progress", progress)
-            heroes = data.get("heroes", [])
-            teams = data.get("teams", [])
-            settings = data.get("settings", settings)
+    var granted = false
+    for template_id in STARTER_HERO_IDS:
+        var template = HeroesData.get_template_by_id(template_id)
+        if template.is_empty():
+            continue
+        heroes.append(HeroesData.create_hero_from_template(template))
+        granted = true
+    if granted:
+        save_game()
+
+func _ensure_team_slots():
+    if teams.is_empty():
+        teams = [_default_team()]
+        save_game()
+        return
+    var slots = teams[0].get("slots", [])
+    if slots.size() != 6:
+        teams[0]["slots"] = _default_team()["slots"]
+        save_game()
+
+func _default_team() -> Dictionary:
+    var slots = []
+    for i in range(6):
+        slots.append({"position": i + 1, "hero_id": null})
+    return {"id": "team_1", "name": "Main Team", "slots": slots}
+
+func _auto_assign_hero(hero_id: String) -> bool:
+    if hero_id.is_empty() or teams.is_empty():
+        return false
+    for slot in teams[0].get("slots", []):
+        if slot["hero_id"] == null:
+            slot["hero_id"] = hero_id
+            return true
+    return false
+
+func _fill_empty_team_slots():
+    if heroes.is_empty() or teams.is_empty():
+        return
+    var assigned = []
+    for slot in teams[0].get("slots", []):
+        if slot["hero_id"] != null:
+            assigned.append(slot["hero_id"])
+    var changed = false
+    for hero in heroes:
+        var hero_id = str(hero.get("id", ""))
+        if hero_id.is_empty() or assigned.has(hero_id):
+            continue
+        if _auto_assign_hero(hero_id):
+            assigned.append(hero_id)
+            changed = true
+        else:
+            break
+    if changed:
+        save_game()
+
+func get_team_hero_count() -> int:
+    return get_player_heroes().size()
 
 func get_character_style() -> String:
     var style: String = str(settings.get("character_style", "px64"))
@@ -104,6 +161,8 @@ func get_hero_by_id(hero_id: String) -> Dictionary:
 
 func add_hero(hero_data: Dictionary):
     heroes.append(hero_data)
+    # New heroes join the battle team automatically while a slot is free.
+    _auto_assign_hero(str(hero_data.get("id", "")))
     save_game()
 
 func update_progress(key: String, value):
