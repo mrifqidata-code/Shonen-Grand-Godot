@@ -35,18 +35,18 @@ func _ready():
     create_btn.pressed.connect(_on_create_design)
     export_btn.pressed.connect(_on_export_design)
     
-    log("Ready. Connect Canva first.")
+    log_line("Ready. Connect Canva first.")
 
-func log(msg: String):
+func log_line(msg: String):
     log_label.text = "Log: " + msg
 
 func _on_auth_status(authenticated: bool):
     if authenticated:
         auth_label.text = "Status: ✅ Connected"
-        log("Canva connected!")
+        log_line("Canva connected!")
     else:
         auth_label.text = "Status: ❌ Not connected"
-        log("Not connected. Click Connect Canva.")
+        log_line("Not connected. Click Connect Canva.")
 
 func _on_create_design():
     var title = name_input.text.strip_edges()
@@ -54,7 +54,7 @@ func _on_create_design():
         title = "Shonen Grand Asset"
     var w = int(width_input.value)
     var h = int(height_input.value)
-    log("Creating design: %s (%dx%d)..." % [title, w, h])
+    log_line("Creating design: %s (%dx%d)..." % [title, w, h])
     canva_service.create_design(title, w, h)
 
 func _on_design_created(data: Dictionary):
@@ -62,20 +62,20 @@ func _on_design_created(data: Dictionary):
         current_design_id = data["design_id"]
     elif data.has("id"):
         current_design_id = data["id"]
-    log("Design created: " + current_design_id)
+    log_line("Design created: " + current_design_id)
     export_btn.disabled = false
 
 func _on_export_design():
     if current_design_id.is_empty():
-        log("No design to export. Create one first.")
+        log_line("No design to export. Create one first.")
         return
-    log("Exporting design...")
+    log_line("Exporting design...")
     canva_service.export_design(current_design_id, "png")
 
 func _on_design_exported(data: Dictionary):
     if data.has("downloadUrl"):
         var url = data["downloadUrl"]
-        log("Exported! Downloading...")
+        log_line("Exported! Downloading...")
         var asset_name = name_input.text.strip_edges()
         if asset_name.is_empty():
             asset_name = "asset"
@@ -84,12 +84,12 @@ func _on_design_exported(data: Dictionary):
         var save_path = canva_downloader.get_save_directory() + asset_name
         canva_downloader.download_file(url, save_path)
     else:
-        log("Export complete. Check Canva.")
+        log_line("Export complete. Check Canva.")
 
 func _on_download_completed(file_path: String, success: bool):
     if success:
         last_download_path = file_path
-        log("✅ Downloaded: " + file_path)
+        log_line("✅ Downloaded: " + file_path)
         
         # Auto-import to res:// (editor only)
         if Engine.is_editor_hint():
@@ -97,19 +97,19 @@ func _on_download_completed(file_path: String, success: bool):
             add_child(importer)
             importer.import_completed.connect(func(src, dst, ok):
                 if ok:
-                    log("✅ Imported to: " + dst)
+                    log_line("✅ Imported to: " + dst)
                 else:
-                    log("⚠️ Import failed (run in editor)")
+                    log_line("⚠️ Import failed (run in editor)")
             )
             importer.import_file(file_path, "assets/sprites/heroes/")
         else:
-            log("⚠️ Run in Godot Editor to auto-import to project")
+            log_line("⚠️ Run in Godot Editor to auto-import to project")
         
         # Open file location
         if OS.get_name() == "Windows":
             OS.shell_open(file_path.get_base_dir())
     else:
-        log("❌ Download failed")
+        log_line("❌ Download failed")
 
 func _on_error(msg: String):
-    log("Error: " + msg)
+    log_line("Error: " + msg)
