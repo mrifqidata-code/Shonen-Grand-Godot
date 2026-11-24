@@ -15,35 +15,36 @@ dan langsung dipakai di kartu hero, baris tim, dan daftar musuh di Battle.
 |----|------|---------------|--------------|-------------|--------|-------------|
 | `px16` | Pixel 16 × 16 | 16 × 16 | ± 96 px (6×) | 1 KB | Nearest | Gaya retro 8-bit, sangat ringan |
 | `px32` | Pixel 32 × 32 | 32 × 32 | ± 96 px (3×) | 4 KB | Nearest | Pixel klasik, siluet terbaca |
-| `px64` | Pixel 64 × 64 | 64 × 64 | ± 96 px (1.5×) | 16 KB | Nearest | Pixel detail + outline |
+| `px64` | **Pixel 64 × 64 (aktif)** | 64 × 64 | 64–128 px | 16 KB | Nearest | Pixel detail + outline |
 | `chibi128` | Chibi HD 128 × 128 | 128 × 128 | 96–128 px | 64 KB | Linear | **Rekomendasi** anime idle RPG |
 | `hd256` | Anime HD 256 × 256 | 256 × 256 | 128–256 px | 256 KB | Linear | Hero besar / splash / 1080p |
 
 Contoh hasil render ada di `assets/sprites/style_samples/` (satu PNG per gaya per anime).
 
+> **Gaya aktif proyek: `px64` (Pixel 64 × 64).** Semua avatar di kartu hero, baris tim,
+> daftar musuh, dan layar ini memakai gaya tersebut. Ganti kapan saja lewat layar 🎭.
+
 ---
 
-## 2. Jawaban singkat: 16, 32, atau 64 pixel?
+## 2. Jawaban singkat: 16, 32, 64, atau 128?
 
-**Untuk game ini: 128 (HD chibi) atau 64 (pixel detail). 16 dan 32 terlalu kecil.**
+**Proyek ini memakai 64 px.** 16 dan 32 terlalu kecil, 128/256 hanya kalau mau tampilan
+non-pixel (HD).
 
 Alasannya:
 
-- **16 × 16** — kepala cuma sekitar 7 × 7 piksel. Di HP 6 inci, sprite 96 px berarti
-  setiap piksel sumber jadi blok 6 px. Wajah, mata, dan kostum **tidak mungkin terbaca**.
-  Hanya masuk akal kalau seluruh game bergaya retro (font bitmap, ikon pixel, UI pixel).
+- **16 × 16** — kepala cuma sekitar 7 × 7 piksel. Di HP 6 inci, setiap piksel sumber jadi
+  blok besar. Wajah, mata, dan kostum **tidak mungkin terbaca**. Hanya masuk akal kalau
+  seluruh game bergaya retro (font bitmap, ikon pixel, UI pixel).
 - **32 × 32** — siluet mulai jelas, tapi mata masih 1 piksel dan ekspresi tidak terbaca.
-  Masih terasa "pixel art", bukan anime.
-- **64 × 64** — titik seimbang untuk pixel art: mata 2 px, outline 1 px, kostum terbaca.
-  Pilihan kalau kamu memang mau nuansa pixel.
-- **128 × 128** — standar anime chibi modern (mirip hero portrait game idle RPG).
-  Garis halus, ekspresi terbaca, file tetap kecil (64 KB/hero).
-- **256 × 256** — paling tajam, untuk hero card besar atau layar 1080p ke atas.
-  Boros: 6 hero = 1,5 MB VRAM (belum animasi).
+- **64 × 64** — titik seimbang untuk pixel art: mata 2 px, outline 1 px, kostum terbaca,
+  hanya 16 KB per hero. **Ini yang dipakai sekarang.**
+- **128 × 128** — alternatif halus (non-pixel) setara anime chibi modern. Garis halus,
+  file 64 KB/hero.
+- **256 × 256** — paling tajam, untuk hero card besar / splash 1080p. 256 KB/hero.
 
-Aturan praktis: **resolusi sumber ≈ ukuran tampil di game**. Hero di baris battle tampil
-sekitar 96–128 px, jadi sumber 128 px sudah pas. Kalau memilih pixel art, pakai pembagi
-bulat (32 atau 64) supaya penskalaan rapi dan tidak berkedip.
+Aturan praktis: **resolusi sumber = ukuran tampil × bilangan bulat.** Sprite 64 px
+ditampilkan 64 px (1×) atau 128 px (2×) — jangan 96 px (1,5×) karena pixel jadi tidak rata.
 
 ---
 
@@ -52,13 +53,19 @@ bulat (32 atau 64) supaya penskalaan rapi dan tidak berkedip.
 Project ini render pada **720 × 1280** dengan stretch mode `canvas_items`.
 Di HP 1080 × 1920 semuanya diperbesar **1,5×**.
 
-- Pixel art 32 px ditampilkan 96 px (3×), lalu 1,5× oleh layar → **4,5×** (tidak bulat)
-  → tepi pixel bisa tampak tidak rata/berkedip saat sprite bergerak.
-- 64 px → 96 px (1,5×) → total 2,25×. Lebih baik.
-- 128 px → 96–128 px (0,75–1×) → total 1,125–1,5×. Paling aman.
+`CharacterView` mengunci skala pixel art ke bilangan bulat (`floor(box / 64)`),
+jadi sprite 64 px selalu digambar 64 px (1×) atau 128 px (2×) — tidak pernah 1,5×.
+Saat ini: **kartu hero 128 px (2×)**, **baris tim & musuh di Battle 64 px (1×)**.
+Kalau nanti bikin layout baru, beri kotak avatar kelipatan 64 (64, 128, 192)
+supaya tetap tajam.
+
+- Pixel art 32 px di kotak 96 px (3×), lalu 1,5× oleh layar → **4,5×** (tidak bulat)
+  → tepi pixel bisa tampak tidak rata saat sprite bergerak.
+- 64 px di kotak 64 px (1×) → total 1,5× di layar 1080p. Aman.
+- 64 px di kotak 128 px (2×) → total 3× di layar 1080p. Aman.
 
 Kalau nanti mau pixel-perfect total, kunci ukuran tampil ke kelipatan bulat
-(misal sprite selalu 96 px untuk sumber 32 px) dan matikan smoothing kamera.
+(misal sprite selalu 128 px untuk sumber 64 px) dan matikan smoothing kamera.
 
 ---
 

@@ -64,7 +64,7 @@ func _refresh_team_row(heroes: Array):
         col.add_theme_constant_override("separation", 0)
 
         var view = CharacterViewScript.new()
-        view.custom_minimum_size = Vector2(62, 62)
+        view.custom_minimum_size = Vector2(64, 64)
         view.style_id = GameManager.get_character_style()
         view.anime_origin = str(hero.get("anime_origin", "Default"))
         col.add_child(view)
@@ -93,7 +93,7 @@ func refresh_enemy_preview():
         panel.add_child(row)
 
         var view = CharacterViewScript.new()
-        view.custom_minimum_size = Vector2(52, 52)
+        view.custom_minimum_size = Vector2(64, 64)
         view.style_id = GameManager.get_character_style()
         view.anime_origin = str(e.get("anime_origin", "Enemy"))
         view.size_flags_vertical = Control.SIZE_SHRINK_CENTER

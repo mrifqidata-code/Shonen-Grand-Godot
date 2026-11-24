@@ -39,7 +39,7 @@ func refresh_heroes():
 
 func create_hero_card(hero: Dictionary) -> PanelContainer:
     var panel = PanelContainer.new()
-    panel.custom_minimum_size = Vector2(0, 132)
+    panel.custom_minimum_size = Vector2(0, 144)
 
     var row = HBoxContainer.new()
     row.add_theme_constant_override("separation", 10)
@@ -47,7 +47,7 @@ func create_hero_card(hero: Dictionary) -> PanelContainer:
 
     # Character avatar using the display style chosen in "Gaya Karakter"
     var avatar = CharacterViewScript.new()
-    avatar.custom_minimum_size = Vector2(68, 68)
+    avatar.custom_minimum_size = Vector2(128, 128)
     avatar.style_id = GameManager.get_character_style()
     avatar.anime_origin = str(hero.get("anime_origin", "Default"))
     avatar.size_flags_vertical = Control.SIZE_SHRINK_CENTER

@@ -10,7 +10,7 @@
 extends RefCounted
 class_name CharacterSpriteFactory
 
-const DEFAULT_STYLE := "chibi128"
+const DEFAULT_STYLE := "px64"
 
 static var _cache: Dictionary = {}
 
@@ -102,9 +102,9 @@ static func get_styles() -> Array:
             "native": 64,
             "antialias": false,
             "detail": 2,
-            "tagline": "Pixel detail · seimbang",
-            "desc": "Sprite 64 × 64 dengan outline. Ekspresi terbaca, memori kecil (16 KB per hero). Pilihan aman kalau mau nuansa pixel.",
-            "recommended": false,
+            "tagline": "Pilihan kamu · pixel detail",
+            "desc": "Sprite 64 × 64 dengan outline, ditampilkan 1×–2× (64/128 px) supaya tajam. Ekspresi terbaca, hanya 16 KB per hero.",
+            "recommended": true,
         },
         {
             "id": "chibi128",
@@ -112,9 +112,9 @@ static func get_styles() -> Array:
             "native": 128,
             "antialias": true,
             "detail": 3,
-            "tagline": "Rekomendasi · anime chibi halus",
+            "tagline": "Alternatif halus · non-pixel",
             "desc": "Sprite 128 × 128 anti-alias, garis halus, cocok gaya anime idle RPG modern. Ukuran tampil di HP ± 96-128 px.",
-            "recommended": true,
+            "recommended": false,
         },
         {
             "id": "hd256",

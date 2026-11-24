@@ -52,7 +52,7 @@ func _make_preview_card() -> PanelContainer:
     panel.add_child(box)
 
     var title := Label.new()
-    title.text = "Pratinjau ukuran asli di HP (720 × 1280)"
+    title.text = "Pratinjau 2× — ukuran kartu hero (tetap tajam)"
     title.add_theme_font_size_override("font_size", 13)
     title.add_theme_color_override("font_color", Color(0.72, 0.76, 0.88))
     box.add_child(title)
@@ -67,7 +67,7 @@ func _make_preview_card() -> PanelContainer:
         var col := VBoxContainer.new()
         col.add_theme_constant_override("separation", 2)
         var view = CharacterViewScript.new()
-        view.custom_minimum_size = Vector2(82, 82)
+        view.custom_minimum_size = Vector2(128, 128)
         view.style_id = current
         view.anime_origin = hero["origin"]
         col.add_child(view)
@@ -101,12 +101,12 @@ func _make_style_card(style: Dictionary) -> PanelContainer:
     panel.add_child(row)
 
     var frame := PanelContainer.new()
-    frame.custom_minimum_size = Vector2(92, 92)
+    frame.custom_minimum_size = Vector2(128, 128)
     frame.add_theme_stylebox_override(
         "panel", _panel_style(Color(0.14, 0.15, 0.24), Color(0, 0, 0, 0), 8, 6)
     )
     var view = CharacterViewScript.new()
-    view.custom_minimum_size = Vector2(92, 92)
+    view.custom_minimum_size = Vector2(128, 128)
     view.style_id = style["id"]
     view.anime_origin = "Naruto"
     frame.add_child(view)
@@ -177,13 +177,14 @@ func _make_guide_card() -> PanelContainer:
 
     var body := Label.new()
     body.text = (
-        "• Di layar 720 × 1280, hero di baris battle tampil ± 96–128 px.\n"
-        + "• 16/32 px → gaya retro; wajah jadi blok. Hanya kalau memang mau nuansa pixel.\n"
-        + "• 64 px → pixel detail, outline rapi, hemat memori (16 KB/hero).\n"
-        + "• 128 px → rekomendasi anime idle RPG: halus, kecil (64 KB/hero).\n"
-        + "• 256 px → paling tajam, 256 KB/hero (6 hero = 1,5 MB VRAM).\n"
-        + "• Animasi: pixel style pakai sprite sheet 4–8 frame; HD chibi cocok untuk tween/bone atau Live2D-style.\n"
-        + "• Ganti art nanti: taruh Canva di res://assets/sprites/heroes/<asal>/<id_gaya>.png — otomatis dipakai."
+        "• Gaya aktif proyek: 64 px (pixel detail), ditampilkan 1×–2× (64/128 px).\n"
+        + "• 16/32 px → terlalu kecil untuk layar HP; wajah tidak terbaca.\n"
+        + "• 64 px → pilihan kamu: pixel + outline, hanya 16 KB/hero.\n"
+        + "• 128 px → alternatif halus (non-pixel) untuk anime chibi.\n"
+        + "• 256 px → untuk hero besar/splash, 256 KB/hero.\n"
+        + "• Animasi 64 px: sprite sheet 6–8 frame per aksi.\n"
+        + "• Import PNG dari Canva: Filter Off + Lossless, kalau tidak pixel jadi blur.\n"
+        + "• Art asli: res://assets/sprites/heroes/<asal>/<id_gaya>.png (otomatis dipakai)."
     )
     body.add_theme_font_size_override("font_size", 11)
     body.add_theme_color_override("font_color", Color(0.74, 0.76, 0.84))

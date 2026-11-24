@@ -19,7 +19,7 @@ var teams: Array = []
 
 # Player preferences (art style, toggles). Not reset by init_new_game().
 var settings: Dictionary = {
-    "character_style": "chibi128",
+    "character_style": "px64",
 }
 
 const SAVE_PATH = "user://save.json"
@@ -87,9 +87,9 @@ func load_game():
             settings = data.get("settings", settings)
 
 func get_character_style() -> String:
-    var style: String = str(settings.get("character_style", "chibi128"))
+    var style: String = str(settings.get("character_style", "px64"))
     if style.is_empty():
-        style = "chibi128"
+        style = "px64"
     return style
 
 func set_character_style(style_id: String):

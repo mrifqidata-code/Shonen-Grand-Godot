@@ -71,5 +71,16 @@ func _draw() -> void:
     var side := minf(size.x, size.y)
     if side <= 0.0:
         return
-    var rect := Rect2((size - Vector2(side, side)) * 0.5, Vector2(side, side))
+    var tex_size := tex.get_size()
+    if tex_size.x <= 0.0:
+        return
+
+    # Pixel styles must scale by whole numbers, otherwise the art looks blurry
+    # or shimmers when it moves. HD styles may scale freely.
+    var render_scale := side / tex_size.x
+    if Factory.is_nearest(style_id):
+        render_scale = maxf(1.0, floorf(render_scale))
+
+    var draw_size := tex_size * render_scale
+    var rect := Rect2((size - draw_size) * 0.5, draw_size)
     draw_texture_rect(tex, rect, false)
