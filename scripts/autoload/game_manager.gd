@@ -245,9 +245,15 @@ func get_team() -> Dictionary:
         return teams[0]
     return {}
 
+func hero_level_cap(hero: Dictionary) -> int:
+    # HeroLevelUpCfg: the level cap grows with each Limit Break (max 600).
+    return GameConfig.level_cap(int(hero.get("limit_break", 0)))
+
 func upgrade_hero(hero_id: String) -> bool:
     var hero = get_hero_by_id(hero_id)
     if hero.is_empty():
+        return false
+    if int(hero["level"]) >= hero_level_cap(hero):
         return false
     var cost = hero["level"] * 50
     if not spend_gold(cost):
@@ -256,6 +262,26 @@ func upgrade_hero(hero_id: String) -> bool:
     for i in range(heroes.size()):
         if heroes[i]["id"] == hero_id:
             heroes[i]["level"] += 1
+            break
+    save_game()
+    return true
+
+func limit_break_cost(hero: Dictionary) -> int:
+    return 2 + int(hero.get("limit_break", 0)) * 2
+
+func limit_break_hero(hero_id: String) -> bool:
+    var hero = get_hero_by_id(hero_id)
+    if hero.is_empty():
+        return false
+    if int(hero.get("limit_break", 0)) >= GameConfig.MAX_LIMIT_BREAK:
+        return false
+    var cost := limit_break_cost(hero)
+    if int(progress.get("hero_shards", 0)) < cost:
+        return false
+    progress["hero_shards"] = int(progress["hero_shards"]) - cost
+    for i in range(heroes.size()):
+        if heroes[i]["id"] == hero_id:
+            heroes[i]["limit_break"] = int(heroes[i].get("limit_break", 0)) + 1
             break
     save_game()
     return true

@@ -20,6 +20,8 @@ func _ready() -> void:
 	for c in cases:
 		scene._set_tab(int(c["tab"]))
 		var key := str(c["key"])
+		# Top up so the test does not depend on the current save.
+		GameManager.progress[key] = int(GameManager.progress.get(key, 0)) + 1000
 		var before := int(GameManager.progress.get(key, 0))
 		var heroes_before: int = GameManager.heroes.size()
 		scene._on_summon(1)

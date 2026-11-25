@@ -1,6 +1,8 @@
 # scripts/ui/summon_ui.gd
-# Summon hub with four banners (Hero / Friendship / Advanced / Race), each with
-# its own currency, pool and pity. Mirrors the summon split used by idle RPGs.
+# Summon hub with the four banners from GameConfig (Hero / Friendship / Advanced /
+# Race). Odds, cost and pity follow the Twilight Chronicle datamine: each pull
+# rolls a rarity tier by weight, every 10x guarantees a mid tier, and 100 pulls
+# guarantee the top tier. The rate table and pity bar are shown to the player.
 extends Control
 
 const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
@@ -14,16 +16,6 @@ const RARITY_COLORS := {
 }
 const GOLD := Color("d8b24a")
 const GOLD_DIM := Color("8a6f1a")
-const PITY_MAX := 100
-
-# key = progress field, per = cost per single pull
-const BANNERS := [
-	{"id": "hero", "label": "Hero", "key": "tickets", "per": 1, "icon": "🎫", "unit": "ticket"},
-	{"id": "friendship", "label": "Friendship", "key": "friendship_points", "per": 10, "icon": "🤝", "unit": "poin"},
-	{"id": "advanced", "label": "Advanced", "key": "advanced_scrolls", "per": 1, "icon": "📜", "unit": "scroll"},
-	{"id": "race", "label": "Race", "key": "diamonds", "per": 100, "icon": "💎", "unit": "diamond"},
-]
-const FACTIONS := ["Lightforged", "Arcane", "Kindred", "Demonhunt", "Void"]
 
 @onready var ticket_label: Label = $VBox/TicketPanel/HBox/TicketLabel
 @onready var summon1_btn: Button = $VBox/SummonRow/Summon1Btn
@@ -43,6 +35,9 @@ var _featured_hero_id := ""
 var _tab := 0
 var _faction := 0
 var _tab_buttons: Array = []
+var _rate_label: Label
+var _pity_label: Label
+var _pity_bar: ProgressBar
 
 
 func _ready() -> void:
@@ -55,15 +50,15 @@ func _ready() -> void:
 	)
 	_build_tabs()
 	_build_factions()
+	_build_rate_panel()
 	_build_banner()
-	_build_featured()
 	_set_tab(0)
 
 
 func _build_tabs() -> void:
 	var tabs: HBoxContainer = $VBox/Tabs
-	for i in range(BANNERS.size()):
-		var btn: Button = tabs.get_node("Tab" + str(BANNERS[i]["label"]))
+	for i in range(GameConfig.BANNERS.size()):
+		var btn: Button = tabs.get_node("Tab" + str(GameConfig.BANNERS[i]["label"]))
 		_tab_buttons.append(btn)
 		btn.pressed.connect(_set_tab.bind(i))
 
@@ -78,6 +73,42 @@ func _build_factions() -> void:
 		faction_row.add_child(btn)
 
 
+const FACTIONS := ["Lightforged", "Arcane", "Kindred", "Demonhunt", "Void"]
+
+
+func _build_rate_panel() -> void:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _style(Color(0.06, 0.06, 0.13, 0.94), GOLD_DIM, 1, 8))
+	$VBox.add_child(panel)
+	$VBox.move_child(panel, $VBox/StatusLabel.get_index())
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 3)
+	panel.add_child(box)
+
+	_rate_label = Label.new()
+	_rate_label.add_theme_font_size_override("font_size", 12)
+	_rate_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(_rate_label)
+
+	var pity_row := HBoxContainer.new()
+	pity_row.add_theme_constant_override("separation", 6)
+	box.add_child(pity_row)
+	_pity_label = Label.new()
+	_pity_label.add_theme_font_size_override("font_size", 11)
+	_pity_label.add_theme_color_override("font_color", Color(0.75, 0.78, 0.88))
+	pity_row.add_child(_pity_label)
+	_pity_bar = ProgressBar.new()
+	_pity_bar.min_value = 0
+	_pity_bar.max_value = GameConfig.PITY_MAX
+	_pity_bar.show_percentage = false
+	_pity_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_pity_bar.custom_minimum_size = Vector2(0, 10)
+	_pity_bar.add_theme_stylebox_override("background", _style(Color(0.10, 0.10, 0.18), Color(0, 0, 0, 0), 0, 4))
+	_pity_bar.add_theme_stylebox_override("fill", _style(GOLD, Color(0, 0, 0, 0), 0, 4))
+	pity_row.add_child(_pity_bar)
+
+
 func _set_tab(index: int) -> void:
 	_tab = index
 	for i in range(_tab_buttons.size()):
@@ -89,15 +120,16 @@ func _set_tab(index: int) -> void:
 		)
 		btn.add_theme_color_override("font_color", Color(1, 0.9, 0.6) if active else Color(0.8, 0.82, 0.9))
 	faction_row.visible = index == 3
-	var banner: Dictionary = BANNERS[index]
-	status_label.text = "Pity: %d/%d · %s x%d = %d %s" % [
-		int(GameManager.progress.get("noble_insignia", 0)),
-		PITY_MAX,
-		banner["icon"],
-		int(banner["per"]),
-		int(banner["per"]),
-		banner["unit"],
+	var banner: Dictionary = GameConfig.BANNERS[index]
+	_rate_label.text = "Rate: " + GameConfig.rate_line(banner)
+	_rate_label.add_theme_color_override("font_color", Color(0.85, 0.88, 0.98))
+	_pity_label.text = "Pity %d/%d%s" % [
+		_pity_value(),
+		GameConfig.PITY_MAX,
+		" · 10× jaminan UR" if bool(banner.get("ten_guarantee", false)) else "",
 	]
+	_pity_bar.value = _pity_value()
+	status_label.text = str(banner.get("blurb", ""))
 	status_label.add_theme_color_override("font_color", Color(0.65, 0.68, 0.78))
 	_update_prices()
 	_build_featured()
@@ -114,8 +146,12 @@ func _select_faction(index: int) -> void:
 	_build_featured()
 
 
+func _pity_value() -> int:
+	return int(GameManager.progress.get("noble_insignia", 0))
+
+
 func _update_prices() -> void:
-	var banner: Dictionary = BANNERS[_tab]
+	var banner: Dictionary = GameConfig.BANNERS[_tab]
 	var amount := int(GameManager.progress.get(str(banner["key"]), 0))
 	ticket_label.text = "%s %d %s" % [banner["icon"], amount, banner["unit"]]
 	var per := int(banner["per"])
@@ -150,16 +186,20 @@ func _build_banner() -> void:
 
 
 func _pool() -> Array:
+	var banner: Dictionary = GameConfig.BANNERS[_tab]
+	var tiers: Array = banner.get("pool_tiers", [0, 1, 2])
 	var all := HeroesData.get_all_templates()
-	match _tab:
-		1:
-			return all.filter(func(t): return str(t["rarity"]) in ["SSR", "SSR+"])
-		2:
-			return all.filter(func(t): return str(t["rarity"]) in ["SSR+", "UR", "UR+", "EX"])
-		3:
-			return all.filter(func(t): return int(t["faction"]) == _faction)
-		_:
-			return all
+	return all.filter(func(t):
+		var ok := tiers.has(GameConfig.tier_of(str(t["rarity"])))
+		if _tab == 3:
+			ok = ok and int(t["faction"]) == _faction
+		return ok
+	)
+
+
+func _pool_for_tier(pool: Array, min_tier: int) -> Array:
+	var out := pool.filter(func(t): return GameConfig.tier_of(str(t["rarity"])) >= min_tier)
+	return out if not out.is_empty() else pool
 
 
 func _build_featured() -> void:
@@ -220,7 +260,7 @@ func _hero_card(template: Dictionary, sprite_px: int) -> PanelContainer:
 
 
 func _on_summon(count: int) -> void:
-	var banner: Dictionary = BANNERS[_tab]
+	var banner: Dictionary = GameConfig.BANNERS[_tab]
 	var key := str(banner["key"])
 	var per := int(banner["per"])
 	var total_cost := per * count
@@ -237,22 +277,19 @@ func _on_summon(count: int) -> void:
 		return
 
 	var pulled_heroes := []
+	var best_tier := -1
 	for i in range(count):
 		if not GameManager.spend_progress(key, per):
 			break
-		var use_pity := int(GameManager.progress.get("noble_insignia", 0)) >= PITY_MAX
-		var template: Dictionary
-		if use_pity:
-			var premium := pool.filter(func(t): return str(t["rarity"]) in ["SSR+", "UR", "UR+", "EX"])
-			template = premium[randi() % premium.size()] if not premium.is_empty() else pool[randi() % pool.size()]
-			GameManager.progress["noble_insignia"] = int(GameManager.progress.get("noble_insignia", 0)) - PITY_MAX
-		else:
-			template = pool[randi() % pool.size()]
-		GameManager.add_progress("noble_insignia", 1)
+		var tier := _roll_tier(banner, count, i, best_tier)
+		best_tier = maxi(best_tier, tier)
+		var tier_pool := _pool_for_tier(pool, tier)
+		# Prefer an exact-tier template so the rolled rarity is honoured.
+		var exact := tier_pool.filter(func(t): return GameConfig.tier_of(str(t["rarity"])) == tier)
+		var template: Dictionary = exact[randi() % exact.size()] if not exact.is_empty() else tier_pool[randi() % tier_pool.size()]
 		var hero = HeroesData.create_hero_from_template(template)
 		GameManager.add_hero(hero)
 		pulled_heroes.append(hero)
-		# Duplicate protection: extra copies become shards.
 		if _owns_template(str(template["id"]), hero["id"]):
 			GameManager.add_progress("hero_shards", 10)
 
@@ -265,12 +302,43 @@ func _on_summon(count: int) -> void:
 	var best := _best_rarity(pulled_heroes)
 	var color: Color = RARITY_COLORS.get(best, Color.WHITE)
 	status_label.text = "✨ %s ×%d · terbaik: %s · Pity %d/%d · Tim %d/6" % [
-		banner["label"], pulled_heroes.size(), best,
-		int(GameManager.progress.get("noble_insignia", 0)), PITY_MAX,
+		banner["label"], pulled_heroes.size(), best, _pity_value(), GameConfig.PITY_MAX,
 		GameManager.get_team_hero_count(),
 	]
 	status_label.add_theme_color_override("font_color", color)
 	_update_prices()
+	_pity_bar.value = _pity_value()
+	_pity_label.text = "Pity %d/%d%s" % [
+		_pity_value(), GameConfig.PITY_MAX,
+		" · 10× jaminan UR" if bool(banner.get("ten_guarantee", false)) else "",
+	]
+
+
+## Rolls a rarity tier: hard pity at 100, 10x guarantees a mid tier on the last
+## pull, otherwise a weighted roll from the banner's rate table.
+func _roll_tier(banner: Dictionary, count: int, index: int, best_so_far: int) -> int:
+	if _pity_value() >= GameConfig.PITY_MAX - 1:
+		GameManager.progress["noble_insignia"] = 0
+		return 2
+	var weights: Array = banner.get("weights", [8900, 850, 250])
+	var tier := _weighted_tier(weights)
+	if count >= 10 and bool(banner.get("ten_guarantee", false)) and index == count - 1 and best_so_far < 1:
+		tier = 1
+	GameManager.add_progress("noble_insignia", 1)
+	return tier
+
+
+func _weighted_tier(weights: Array) -> int:
+	var total := 0
+	for w in weights:
+		total += int(w)
+	var roll := randi() % maxi(total, 1)
+	var acc := 0
+	for i in range(weights.size()):
+		acc += int(weights[i])
+		if roll < acc:
+			return i
+	return 0
 
 
 func _owns_template(template_id: String, new_hero_id: String) -> bool:

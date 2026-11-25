@@ -25,6 +25,7 @@ const GOLD := Color("d8b24a")
 @onready var detail_stats: Label = $DetailPanel/VBox/DetailStats
 @onready var upgrade_btn: Button = $DetailPanel/VBox/DetailButtons/UpgradeBtn
 @onready var star_btn: Button = $DetailPanel/VBox/DetailButtons/StarBtn
+@onready var limit_btn: Button = $DetailPanel/VBox/DetailButtons/LimitBtn
 @onready var close_btn: Button = $DetailPanel/VBox/CloseBtn
 
 var _sort_mode := 0  # 0 rarity, 1 level, 2 name
@@ -37,6 +38,7 @@ func _ready() -> void:
 	close_btn.pressed.connect(func(): detail_panel.visible = false)
 	upgrade_btn.pressed.connect(_on_upgrade_pressed)
 	star_btn.pressed.connect(_on_star_pressed)
+	limit_btn.pressed.connect(_on_limit_pressed)
 	_style_detail_panel()
 	refresh_heroes()
 
@@ -187,15 +189,23 @@ func _open_detail(hero_id: String) -> void:
 	detail_meta.text = "%s · %s · %s\n%s" % [
 		rarity, hero.get("hero_class", "-"), hero.get("anime_origin", "-"), faction_name
 	]
-	detail_stats.text = "★ %d · Lv.%d · LB%d\nHP %d · ATK %d · DEF %d" % [
+	var cap := GameManager.hero_level_cap(hero)
+	detail_stats.text = "★ %d · Lv.%d/%d · LB%d\nHP %d · ATK %d · DEF %d\nShard tukar LB: %d" % [
 		int(hero.get("star_level", 1)),
 		int(hero.get("level", 1)),
+		cap,
 		int(hero.get("limit_break", 0)),
 		int(hero.get("base_hp", 0)),
 		int(hero.get("base_atk", 0)),
 		int(hero.get("base_def", 0)),
+		GameManager.limit_break_cost(hero),
 	]
-	upgrade_btn.text = "Upgrade (%dg)" % (int(hero.get("level", 1)) * 50)
+	var maxed: bool = int(hero.get("level", 1)) >= cap
+	upgrade_btn.text = "Level MAX" if maxed else "Upgrade (%dg)" % (int(hero.get("level", 1)) * 50)
+	upgrade_btn.disabled = maxed
+	var lb_maxed: bool = int(hero.get("limit_break", 0)) >= GameConfig.MAX_LIMIT_BREAK
+	limit_btn.text = "Limit MAX" if lb_maxed else "Limit Break (%d💠)" % GameManager.limit_break_cost(hero)
+	limit_btn.disabled = lb_maxed or int(GameManager.progress.get("hero_shards", 0)) < GameManager.limit_break_cost(hero)
 	detail_panel.visible = true
 
 
@@ -204,6 +214,14 @@ func open_first_hero() -> void:
 	if GameManager.heroes.is_empty():
 		return
 	_open_detail(str(GameManager.heroes[0]["id"]))
+
+
+func _on_limit_pressed() -> void:
+	if _selected_id.is_empty():
+		return
+	if GameManager.limit_break_hero(_selected_id):
+		refresh_heroes()
+		_open_detail(_selected_id)
 
 
 func _on_upgrade_pressed() -> void:

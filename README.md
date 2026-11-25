@@ -51,6 +51,8 @@ shonen-grand-godot/
 - ✅ Starter hero otomatis + hero hasil summon langsung masuk slot tim
 - ✅ 4 jenis summon: Hero (ticket), Friendship (poin), Advanced (scroll), Race (diamond + faction) + pity Noble Insignia
   → analisis sistem Twilight Chronicle: [docs/TWILIGHT_CHRONICLE_REA.md](docs/TWILIGHT_CHRONICLE_REA.md)
+- ✅ Mekanisme selaras datamine (bobot rarity 89/8,5/2,5%, pity 100, jaminan 10×, cap level bertingkat, formasi 2 baris)
+  → [docs/TWILIGHT_DATAMINE_MECHANICS.md](docs/TWILIGHT_DATAMINE_MECHANICS.md)
 - ✅ Art per-hero dari Canva + importer batch (`tools/import_canva_art.ps1`)
 - ✅ Art prosedural unik untuk 15 hero (warna + aksesori, tanpa file gambar)
 - ✅ Build satu perintah: `tools/ship.ps1` / double-click `BUILD_APK.cmd`
