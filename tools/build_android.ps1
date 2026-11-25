@@ -41,9 +41,16 @@ Write-Host "OK: $apkPath ($sizeMb MB)" -ForegroundColor Green
 
 $adb = Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe"
 if (Test-Path $adb) {
-    $devices = (& $adb devices) | Select-String "device$"
-    if ($devices) {
-        Write-Host "Device detected. Install with:" -ForegroundColor Yellow
-        Write-Host "  `"$adb`" install -r `"$apkPath`""
+    try {
+        $devices = (& $adb devices 2>$null) | Select-String "device$"
+        if ($devices) {
+            Write-Host "Device detected. Install with:" -ForegroundColor Yellow
+            Write-Host "  `"$adb`" install -r `"$apkPath`""
+        }
+    }
+    catch {
+        # adb is optional; never fail the build because of it.
     }
 }
+
+exit 0
