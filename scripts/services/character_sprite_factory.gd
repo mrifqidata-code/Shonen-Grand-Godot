@@ -83,6 +83,215 @@ static var _palettes: Dictionary = {
 }
 
 
+# Per-hero overrides so every owned hero looks different without any art files.
+# Keyed by template id from scripts/data/heroes_data.gd. Missing fields fall back
+# to the origin palette, so adding a hero needs no changes here.
+static var _hero_styles: Dictionary = {
+    "naruto_uzumaki": {
+        "hair": Color("f2c53d"),
+        "outfit": Color("e8722c"),
+        "outfit_dark": Color("a94a17"),
+        "accent": Color("2d5be3"),
+        "eye": Color("2f6bd8"),
+        "hair_style": "spiky",
+        "accessories": ["headband"],
+    },
+    "sasuke_uchiha": {
+        "hair": Color("24242e"),
+        "outfit": Color("2c3a5e"),
+        "outfit_dark": Color("1a2338"),
+        "accent": Color("c4453f"),
+        "eye": Color("d33a3a"),
+        "hair_style": "spiky",
+        "accessories": ["high_collar"],
+    },
+    "kakashi_hatake": {
+        "hair": Color("c9ccd6"),
+        "outfit": Color("3c5a3a"),
+        "outfit_dark": Color("263c26"),
+        "eye": Color("2b3445"),
+        "hair_style": "spiky",
+        "accessories": ["mask", "headband"],
+    },
+    "gojo_satoru": {
+        "hair": Color("eef0f7"),
+        "outfit": Color("1d2233"),
+        "outfit_dark": Color("0f1320"),
+        "accent": Color("6fd3ff"),
+        "eye": Color("74c7ff"),
+        "hair_style": "spiky",
+        "accessories": ["blindfold"],
+    },
+    "yuji_itadori": {
+        "hair": Color("f2a0b4"),
+        "outfit": Color("232a40"),
+        "outfit_dark": Color("141a2b"),
+        "accent": Color("d94b4b"),
+        "hair_style": "short",
+    },
+    "sukuna": {
+        "hair": Color("e88fa8"),
+        "skin": Color("e8c3a0"),
+        "outfit": Color("2a1a24"),
+        "outfit_dark": Color("170e15"),
+        "accent": Color("e03a3a"),
+        "eye": Color("e03a3a"),
+        "hair_style": "spiky",
+        "bare_chest": true,
+        "accessories": ["face_marks"],
+    },
+    "ichigo_kurosaki": {
+        "hair": Color("f28b2c"),
+        "outfit": Color("16161c"),
+        "outfit_dark": Color("0c0c11"),
+        "accent": Color("5aa9ff"),
+        "hair_style": "spiky",
+        "accessories": ["sword"],
+    },
+    "rukia_kuchiki": {
+        "hair": Color("1b1b24"),
+        "outfit": Color("16161c"),
+        "outfit_dark": Color("0c0c11"),
+        "accent": Color("9c7bff"),
+        "eye": Color("5a4a8c"),
+        "hair_style": "bob",
+        "accessories": ["sword"],
+    },
+    "aizen_sosuke": {
+        "hair": Color("4a3524"),
+        "outfit": Color("1a1a22"),
+        "outfit_dark": Color("0e0e14"),
+        "accent": Color("f2f2f6"),
+        "eye": Color("4a3524"),
+        "hair_style": "slick",
+        "cape_color": Color("f2f2f6"),
+        "accessories": ["glasses", "cape"],
+    },
+    "luffy_monkey": {
+        "hair": Color("24242c"),
+        "outfit": Color("d33b3b"),
+        "outfit_dark": Color("8c1d1d"),
+        "accent": Color("f2d15b"),
+        "hair_style": "short",
+        "accessories": ["straw_hat"],
+    },
+    "zoro_roronoa": {
+        "hair": Color("4e9a52"),
+        "outfit": Color("2f5f3a"),
+        "outfit_dark": Color("1f3f26"),
+        "accent": Color("e8e8ee"),
+        "hair_style": "short",
+        "accessories": ["sword"],
+    },
+    "sanji_vinsmoke": {
+        "hair": Color("f2d15b"),
+        "outfit": Color("1b1b22"),
+        "outfit_dark": Color("101016"),
+        "accent": Color("3a6bd6"),
+        "hair_style": "swoop",
+    },
+    "saitama": {
+        "hair": Color("f0c39c"),
+        "outfit": Color("f4d13c"),
+        "outfit_dark": Color("b8921a"),
+        "accent": Color("d63a3a"),
+        "cape_color": Color("f4f6fa"),
+        "hair_style": "bald",
+        "accessories": ["cape"],
+    },
+    "genos": {
+        "hair": Color("f2c53d"),
+        "skin": Color("b9bfcc"),
+        "outfit": Color("1a1a20"),
+        "outfit_dark": Color("0d0d12"),
+        "accent": Color("f28b2c"),
+        "eye": Color("f2b13c"),
+        "hair_style": "spiky",
+        "accessories": ["cyborg"],
+    },
+    "tatsumaki": {
+        "hair": Color("4fbf7a"),
+        "outfit": Color("1b1f2a"),
+        "outfit_dark": Color("0f121a"),
+        "accent": Color("6ff2b0"),
+        "eye": Color("2f7a52"),
+        "hair_style": "curly",
+        "accessories": ["aura"],
+    },
+}
+
+
+static func _hero_cfg(hero_id: String) -> Dictionary:
+    if _hero_styles.has(hero_id):
+        return _hero_styles[hero_id]
+    return {}
+
+
+static func _draw_hair(
+    fig: Image, n: int, pal: Dictionary, hair_style: String, aa: bool, detail: int
+) -> void:
+    var hair: Color = pal["hair"]
+    match hair_style:
+        "bald":
+            if detail >= 3:
+                _circle(fig, Vector2(n * 0.435, n * 0.245), n * 0.060, Color(1, 1, 1, 0.28), aa)
+        "curly":
+            _circle(fig, Vector2(n * 0.5, n * 0.315), n * 0.245, hair, aa, n * 0.415)
+            _circle(fig, Vector2(n * 0.265, n * 0.365), n * 0.105, hair, aa)
+            _circle(fig, Vector2(n * 0.735, n * 0.365), n * 0.105, hair, aa)
+            _circle(fig, Vector2(n * 0.345, n * 0.170), n * 0.095, hair, aa)
+            _circle(fig, Vector2(n * 0.520, n * 0.120), n * 0.100, hair, aa)
+            _circle(fig, Vector2(n * 0.670, n * 0.175), n * 0.090, hair, aa)
+        "bob":
+            _circle(fig, Vector2(n * 0.5, n * 0.315), n * 0.245, hair, aa, n * 0.415)
+            _rrect(fig, Rect2(n * 0.255, n * 0.335, n * 0.115, n * 0.240), n * 0.050, hair, aa)
+            _rrect(fig, Rect2(n * 0.630, n * 0.335, n * 0.115, n * 0.240), n * 0.050, hair, aa)
+            _rrect(fig, Rect2(n * 0.330, n * 0.170, n * 0.340, n * 0.090), n * 0.040, hair, aa)
+        "swoop":
+            _circle(fig, Vector2(n * 0.5, n * 0.315), n * 0.250, hair, aa, n * 0.415)
+            _circle(fig, Vector2(n * 0.400, n * 0.440), n * 0.130, hair, aa)
+            _circle(fig, Vector2(n * 0.285, n * 0.450), n * 0.085, hair, aa)
+            _rrect(fig, Rect2(n * 0.300, n * 0.155, n * 0.440, n * 0.100), n * 0.050, hair, aa)
+        "slick":
+            _circle(fig, Vector2(n * 0.5, n * 0.305), n * 0.250, hair, aa, n * 0.400)
+            _rrect(fig, Rect2(n * 0.285, n * 0.235, n * 0.430, n * 0.075), 0.0, hair, aa)
+            if detail >= 3:
+                _rrect(fig, Rect2(n * 0.500, n * 0.150, n * 0.012, n * 0.140), 0.0, Color(0, 0, 0, 0.20), aa)
+        "short":
+            _circle(fig, Vector2(n * 0.5, n * 0.325), n * 0.245, hair, aa, n * 0.415)
+            _circle(fig, Vector2(n * 0.310, n * 0.315), n * 0.075, hair, aa)
+            _circle(fig, Vector2(n * 0.690, n * 0.315), n * 0.075, hair, aa)
+            if detail >= 2:
+                _circle(fig, Vector2(n * 0.400, n * 0.200), n * 0.065, hair, aa)
+                _circle(fig, Vector2(n * 0.560, n * 0.175), n * 0.070, hair, aa)
+                _circle(fig, Vector2(n * 0.690, n * 0.210), n * 0.060, hair, aa)
+        _:
+            # spiky (default)
+            _circle(fig, Vector2(n * 0.5, n * 0.325), n * 0.250, hair, aa, n * 0.415)
+            if detail >= 2:
+                _circle(fig, Vector2(n * 0.285, n * 0.435), n * 0.078, hair, aa)
+                _circle(fig, Vector2(n * 0.715, n * 0.435), n * 0.078, hair, aa)
+                _circle(fig, Vector2(n * 0.345, n * 0.200), n * 0.072, hair, aa)
+                _circle(fig, Vector2(n * 0.500, n * 0.145), n * 0.078, hair, aa)
+                _circle(fig, Vector2(n * 0.655, n * 0.200), n * 0.072, hair, aa)
+                _circle(fig, Vector2(n * 0.395, n * 0.355), n * 0.072, hair, aa)
+                _circle(fig, Vector2(n * 0.605, n * 0.355), n * 0.072, hair, aa)
+            if detail >= 3:
+                _circle(fig, Vector2(n * 0.425, n * 0.245), n * 0.070, Color(1.0, 1.0, 1.0, 0.30), aa)
+
+
+static func _draw_sword(fig: Image, n: int, aa: bool) -> void:
+    var hilt := Vector2(n * 0.795, n * 0.795)
+    var tip := Vector2(n * 0.930, n * 0.215)
+    var steps := 22
+    for i in range(steps):
+        var t := float(i) / float(steps - 1)
+        var pos := hilt.lerp(tip, t)
+        _circle(fig, pos, n * 0.017, Color("d8dbe6"), aa)
+    _rrect(fig, Rect2(n * 0.755, n * 0.795, n * 0.115, n * 0.026), 0.0, Color("34394a"), aa)
+    _rrect(fig, Rect2(n * 0.780, n * 0.820, n * 0.030, n * 0.055), 0.0, Color("7a4a2a"), aa)
+
+
 static func get_styles() -> Array:
     return [
         {
@@ -177,11 +386,11 @@ static func origin_keys() -> Array:
     return keys
 
 
-static func make_texture(style_id: String, origin: String = "Default") -> Texture2D:
-    var key := "%s|%s" % [style_id, origin]
+static func make_texture(style_id: String, origin: String = "Default", hero_id: String = "") -> Texture2D:
+    var key := "%s|%s|%s" % [style_id, origin, hero_id]
     if _cache.has(key):
         return _cache[key]
-    var img := make_image(style_id, origin)
+    var img := make_image(style_id, origin, hero_id)
     if img == null:
         return null
     var tex := ImageTexture.create_from_image(img)
@@ -189,14 +398,30 @@ static func make_texture(style_id: String, origin: String = "Default") -> Textur
     return tex
 
 
-static func make_image(style_id: String, origin: String = "Default") -> Image:
+static func make_image(style_id: String, origin: String = "Default", hero_id: String = "") -> Image:
     var style := get_style(style_id)
     var n := int(style["native"])
     var aa := bool(style["antialias"])
     var detail := int(style["detail"])
-    var pal: Dictionary = _palette_for(origin)
+    var cfg := _hero_cfg(hero_id)
+    var pal: Dictionary = _palette_for(origin, hero_id)
+    var accs: Array = cfg.get("accessories", [])
+    var hair_style := str(cfg.get("hair_style", "spiky"))
+    var bare := bool(cfg.get("bare_chest", false))
 
     var fig := Image.create_empty(n, n, false, Image.FORMAT_RGBA8)
+
+    # ---- aura / cape behind the body --------------------------------------
+    if detail >= 2 and accs.has("aura"):
+        var glow: Color = pal["accent"]
+        _circle(fig, Vector2(n * 0.5, n * 0.60), n * 0.44, Color(glow.r, glow.g, glow.b, 0.10), aa)
+        _circle(fig, Vector2(n * 0.5, n * 0.58), n * 0.34, Color(glow.r, glow.g, glow.b, 0.12), aa)
+    if detail >= 2 and accs.has("cape"):
+        var cape: Color = cfg.get("cape_color", Color("f2f4fa"))
+        _rrect(fig, Rect2(n * 0.19, n * 0.545, n * 0.62, n * 0.335), n * 0.055, cape, aa)
+        _rrect(fig, Rect2(n * 0.30, n * 0.545, n * 0.40, n * 0.10), n * 0.03, Color(0, 0, 0, 0.10), aa)
+    if detail >= 2 and accs.has("sword"):
+        _draw_sword(fig, n, aa)
 
     # ---- legs -------------------------------------------------------------
     _rrect(fig, Rect2(n * 0.33, n * 0.82, n * 0.135, n * 0.16), n * 0.05, pal["outfit_dark"], aa)
@@ -207,7 +432,12 @@ static func make_image(style_id: String, origin: String = "Default") -> Image:
     _rrect(fig, Rect2(n * 0.68, n * 0.605, n * 0.125, n * 0.235), n * 0.055, pal["outfit"], aa)
 
     # ---- torso ------------------------------------------------------------
-    _rrect(fig, Rect2(n * 0.30, n * 0.565, n * 0.40, n * 0.285), n * 0.09, pal["outfit"], aa)
+    var torso_col: Color = pal["skin"] if bare else pal["outfit"]
+    _rrect(fig, Rect2(n * 0.30, n * 0.565, n * 0.40, n * 0.285), n * 0.09, torso_col, aa)
+    if bare and detail >= 2:
+        # cursed-energy tattoos for shirtless fighters
+        _rrect(fig, Rect2(n * 0.355, n * 0.625, n * 0.105, n * 0.018), 0.0, Color(0.11, 0.07, 0.10, 0.85), aa)
+        _rrect(fig, Rect2(n * 0.535, n * 0.675, n * 0.105, n * 0.018), 0.0, Color(0.11, 0.07, 0.10, 0.85), aa)
     if detail >= 2:
         # belt
         _rrect(fig, Rect2(n * 0.30, n * 0.775, n * 0.40, n * 0.05), n * 0.02, pal["outfit_dark"], aa)
@@ -226,27 +456,19 @@ static func make_image(style_id: String, origin: String = "Default") -> Image:
     var face_center := Vector2(n * 0.5, n * 0.375)
     _circle(fig, face_center, n * 0.215, pal["skin"], aa)
 
-    # hair cap: same circle as the head but higher, clipped just above the eyes
-    _circle(fig, Vector2(n * 0.5, n * 0.325), n * 0.25, pal["hair"], aa, n * 0.415)
+    # ---- hair -------------------------------------------------------------
+    _draw_hair(fig, n, pal, hair_style, aa, detail)
 
+    # ---- head accessories (band, hat) ------------------------------------
     if detail >= 2:
-        # side hair + fringe strands give the silhouette character
-        _circle(fig, Vector2(n * 0.285, n * 0.435), n * 0.078, pal["hair"], aa)
-        _circle(fig, Vector2(n * 0.715, n * 0.435), n * 0.078, pal["hair"], aa)
-        _circle(fig, Vector2(n * 0.345, n * 0.20), n * 0.072, pal["hair"], aa)
-        _circle(fig, Vector2(n * 0.50, n * 0.145), n * 0.078, pal["hair"], aa)
-        _circle(fig, Vector2(n * 0.655, n * 0.20), n * 0.072, pal["hair"], aa)
-        _circle(fig, Vector2(n * 0.395, n * 0.355), n * 0.072, pal["hair"], aa)
-        _circle(fig, Vector2(n * 0.605, n * 0.355), n * 0.072, pal["hair"], aa)
-
-    if detail >= 3:
-        # hair highlight
-        _circle(fig, Vector2(n * 0.425, n * 0.245), n * 0.07, Color(1.0, 1.0, 1.0, 0.30), aa)
-
-    # headband for ninja-style origin (extra detail level only)
-    if detail >= 2 and str(origin) == "Naruto":
-        _rrect(fig, Rect2(n * 0.285, n * 0.298, n * 0.43, n * 0.055), n * 0.012, pal["accent"], aa)
-        _rrect(fig, Rect2(n * 0.44, n * 0.298, n * 0.12, n * 0.055), n * 0.008, Color("c9ccd6"), aa)
+        if accs.has("headband"):
+            _rrect(fig, Rect2(n * 0.285, n * 0.298, n * 0.43, n * 0.055), n * 0.012, pal["accent"], aa)
+            _rrect(fig, Rect2(n * 0.44, n * 0.298, n * 0.12, n * 0.055), n * 0.008, Color("c9ccd6"), aa)
+        if accs.has("straw_hat"):
+            var straw := Color("e8c46a")
+            _rrect(fig, Rect2(n * 0.115, n * 0.262, n * 0.77, n * 0.050), n * 0.022, straw, aa)
+            _rrect(fig, Rect2(n * 0.325, n * 0.135, n * 0.35, n * 0.140), n * 0.055, straw, aa)
+            _rrect(fig, Rect2(n * 0.325, n * 0.238, n * 0.35, n * 0.032), n * 0.008, Color("d33b3b"), aa)
 
     # ---- face -------------------------------------------------------------
     if detail >= 1:
@@ -267,13 +489,35 @@ static func make_image(style_id: String, origin: String = "Default") -> Image:
             aa
         )
 
+    # ---- face accessories (mask, blindfold, glasses, marks) --------------
+    if detail >= 2:
+        if accs.has("mask"):
+            _rrect(fig, Rect2(n * 0.295, n * 0.492, n * 0.41, n * 0.115), n * 0.035, pal["outfit_dark"], aa)
+        if accs.has("blindfold"):
+            _rrect(fig, Rect2(n * 0.278, n * 0.418, n * 0.445, n * 0.085), n * 0.012, pal["outfit_dark"], aa)
+            _rrect(fig, Rect2(n * 0.278, n * 0.418, n * 0.445, n * 0.020), 0.0, Color(1, 1, 1, 0.12), aa)
+        if accs.has("glasses"):
+            var lens := Color(0.80, 0.92, 1.0, 0.30)
+            _rrect(fig, Rect2(n * 0.395, n * 0.443, n * 0.082, n * 0.046), n * 0.008, lens, aa)
+            _rrect(fig, Rect2(n * 0.523, n * 0.443, n * 0.082, n * 0.046), n * 0.008, lens, aa)
+            _rrect(fig, Rect2(n * 0.478, n * 0.458, n * 0.044, n * 0.014), 0.0, Color(0.15, 0.15, 0.2, 0.9), aa)
+        if accs.has("face_marks"):
+            _rrect(fig, Rect2(n * 0.398, n * 0.503, n * 0.030, n * 0.055), 0.0, Color(0.10, 0.06, 0.08, 0.8), aa)
+            _rrect(fig, Rect2(n * 0.572, n * 0.503, n * 0.030, n * 0.055), 0.0, Color(0.10, 0.06, 0.08, 0.8), aa)
+        if accs.has("cyborg"):
+            _rrect(fig, Rect2(n * 0.212, n * 0.635, n * 0.018, n * 0.175), 0.0, pal["accent"], aa)
+            _rrect(fig, Rect2(n * 0.768, n * 0.635, n * 0.018, n * 0.175), 0.0, pal["accent"], aa)
+        if accs.has("high_collar"):
+            _rrect(fig, Rect2(n * 0.300, n * 0.540, n * 0.135, n * 0.105), n * 0.030, pal["outfit_dark"], aa)
+            _rrect(fig, Rect2(n * 0.565, n * 0.540, n * 0.135, n * 0.105), n * 0.030, pal["outfit_dark"], aa)
+
     # ---- outline ----------------------------------------------------------
     if detail >= 2:
         _outline(fig, Color(0.03, 0.04, 0.09, 0.9))
 
     # ---- composite (aura goes behind the figure) --------------------------
     var img := Image.create_empty(n, n, false, Image.FORMAT_RGBA8)
-    if detail >= 4:
+    if detail >= 4 and not accs.has("aura"):
         var accent: Color = pal["accent"]
         var aura := Color(accent.r, accent.g, accent.b, 0.10)
         _circle(img, Vector2(n * 0.5, n * 0.60), n * 0.47, aura, aa)
@@ -283,11 +527,13 @@ static func make_image(style_id: String, origin: String = "Default") -> Image:
     return img
 
 
-static func make_anim_texture(style_id: String, origin: String, anim: String, frame: int) -> Texture2D:
-    var key := "%s|%s|%s|%d" % [style_id, origin, anim, frame]
+static func make_anim_texture(
+    style_id: String, origin: String, anim: String, frame: int, hero_id: String = ""
+) -> Texture2D:
+    var key := "%s|%s|%s|%d|%s" % [style_id, origin, anim, frame, hero_id]
     if _cache.has(key):
         return _cache[key]
-    var img := make_anim_image(style_id, origin, anim, frame)
+    var img := make_anim_image(style_id, origin, anim, frame, hero_id)
     if img == null:
         return null
     var tex := ImageTexture.create_from_image(img)
@@ -295,13 +541,15 @@ static func make_anim_texture(style_id: String, origin: String, anim: String, fr
     return tex
 
 
-static func make_anim_image(style_id: String, origin: String, anim: String, frame: int) -> Image:
-    var base := make_image(style_id, origin)
+static func make_anim_image(
+    style_id: String, origin: String, anim: String, frame: int, hero_id: String = ""
+) -> Image:
+    var base := make_image(style_id, origin, hero_id)
     if base == null:
         return null
     var style := get_style(style_id)
     var aa := bool(style["antialias"])
-    var accent: Color = _palette_for(origin)["accent"]
+    var accent: Color = _palette_for(origin, hero_id)["accent"]
     var count := int(ANIMS.get(anim, ANIMS["idle"])["frames"])
     frame = clampi(frame, 0, count - 1)
 
@@ -467,10 +715,14 @@ static func _victory_frame(base: Image, frame: int, aa: bool, accent: Color) -> 
     return out
 
 
-static func _palette_for(origin: String) -> Dictionary:
-    if _palettes.has(origin):
-        return _palettes[origin]
-    return _palettes["Default"]
+static func _palette_for(origin: String, hero_id: String = "") -> Dictionary:
+    var base: Dictionary = _palettes[origin] if _palettes.has(origin) else _palettes["Default"]
+    var out: Dictionary = base.duplicate()
+    var cfg := _hero_cfg(hero_id)
+    for field in ["hair", "skin", "outfit", "outfit_dark", "accent", "eye"]:
+        if cfg.has(field):
+            out[field] = cfg[field]
+    return out
 
 
 # Source-over blend of `col` with coverage `a` into a single pixel.

@@ -13,6 +13,30 @@ Tidak perlu Canva API atau OAuth — cukup ekspor PNG dan impor lewat script.
 - Untuk gaya aktif `px64`, target akhir **64 × 64 px** (game menampilkannya 2× =
   128 px di kartu hero dan arena battle).
 
+> **Kalau tidak mau ribet sama sekali:** art sudah otomatis. Game menggambar
+> ke-15 hero sendiri (rambut, kostum, aksesori) di
+> `scripts/services/character_sprite_factory.gd`. Tidak ada file yang perlu
+> disiapkan. Bagian di bawah ini hanya kalau kamu mau **mengganti** art otomatis
+> dengan hasil Canva.
+
+### Mode otomatis (disarankan)
+
+```powershell
+# taruh PNG apa pun di art_inbox/ (boleh kosong), lalu:
+powershell -ExecutionPolicy Bypass -File tools\ship.ps1
+```
+
+`ship.ps1` melakukan semuanya: impor art baru (kalau ada) → resize/nama otomatis →
+`godot --import` → build APK → salin ke Desktop sebagai `ShonenGrand-v<versi>.apk`
+→ install ke HP kalau terdeteksi. Bisa juga **double-click `BUILD_APK.cmd`**.
+
+Hasil art otomatis ke-15 hero bisa dilihat di
+`screenshots/hero_art_grid.png`. Regenerate kapan saja:
+
+```powershell
+godot --headless --path . --script res://tools/render_hero_grid.gd
+```
+
 ---
 
 ## 2. Membuat art di Canva
@@ -73,6 +97,14 @@ tidak perlu update script kalau menambah hero baru.
 ---
 
 ## 4. Impor ke project
+
+Cara paling cepat (impor + build + salin APK):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\ship.ps1
+```
+
+Atau langkah manual:
 
 ```powershell
 # taruh PNG di art_inbox/, lalu:

@@ -8,10 +8,10 @@ const Factory := preload("res://scripts/services/character_sprite_factory.gd")
 const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
 
 const SAMPLE_HEROES := [
-    {"label": "Naruto", "origin": "Naruto"},
-    {"label": "Gojo", "origin": "Jujutsu Kaisen"},
-    {"label": "Ichigo", "origin": "Bleach"},
-    {"label": "Luffy", "origin": "One Piece"},
+    {"label": "Naruto", "origin": "Naruto", "hero_id": "naruto_uzumaki"},
+    {"label": "Gojo", "origin": "Jujutsu Kaisen", "hero_id": "gojo_satoru"},
+    {"label": "Ichigo", "origin": "Bleach", "hero_id": "ichigo_kurosaki"},
+    {"label": "Luffy", "origin": "One Piece", "hero_id": "luffy_monkey"},
 ]
 
 @onready var style_list: VBoxContainer = $VBox/Scroll/StyleList
@@ -70,6 +70,7 @@ func _make_preview_card() -> PanelContainer:
         view.custom_minimum_size = Vector2(128, 128)
         view.style_id = current
         view.anime_origin = hero["origin"]
+        view.hero_id = hero["hero_id"]
         col.add_child(view)
 
         var name_label := Label.new()
@@ -109,6 +110,7 @@ func _make_style_card(style: Dictionary) -> PanelContainer:
     view.custom_minimum_size = Vector2(128, 128)
     view.style_id = style["id"]
     view.anime_origin = "Naruto"
+    view.hero_id = "naruto_uzumaki"
     frame.add_child(view)
     row.add_child(frame)
 

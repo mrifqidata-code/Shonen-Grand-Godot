@@ -50,6 +50,8 @@ shonen-grand-godot/
 - ✅ Battle playback: HP bar per unit, angka damage melayang, crit, skip
 - ✅ Starter hero otomatis + hero hasil summon langsung masuk slot tim
 - ✅ Art per-hero dari Canva + importer batch (`tools/import_canva_art.ps1`)
+- ✅ Art prosedural unik untuk 15 hero (warna + aksesori, tanpa file gambar)
+- ✅ Build satu perintah: `tools/ship.ps1` / double-click `BUILD_APK.cmd`
 
 ## 📱 Export ke Android
 1. Project → Export → Add → Android
@@ -57,25 +59,28 @@ shonen-grand-godot/
 3. Export APK
 
 ## 🎨 Asset
-Placeholder karakter digambar prosedural (`character_sprite_factory.gd`) dan
-otomatis diganti art asli bila file tersedia di:
+**Art otomatis aktif.** Setiap dari 15 hero digambar sendiri oleh game
+(`scripts/services/character_sprite_factory.gd`) dengan warna rambut, kostum dan
+aksesori berbeda — headband, topi jerami, blindfold, mask, kacamata, katana,
+cape, aura. Tidak perlu file gambar dan tidak ada langkah manual.
+
+Kalau nanti mau art Canva asli, file tetap otomatis dipakai (menang atas art
+prosedural):
 
 ```
 res://assets/sprites/heroes/<hero_id>/<style_id>.png    # per hero (prioritas)
 res://assets/sprites/heroes/<Origin>/<style_id>.png     # per anime
 ```
 
-Alur Canva:
+Satu perintah untuk impor art + build APK:
 
 ```powershell
-# 1. ekspor PNG transparan dari Canva ke art_inbox/ (nama: <hero_id>.png)
-powershell -ExecutionPolicy Bypass -File tools\import_canva_art.ps1
-godot --headless --path . --import
-powershell -ExecutionPolicy Bypass -File tools\build_android.ps1
+powershell -ExecutionPolicy Bypass -File tools\ship.ps1
 ```
 
-Panduan lengkap: [docs/ART_CANVA_WORKFLOW.md](docs/ART_CANVA_WORKFLOW.md)
-Prompt siap pakai 15 hero: [docs/CANVA_PROMPTS.md](docs/CANVA_PROMPTS.md)
+Atau **double-click `BUILD_APK.cmd`**. Panduan lengkap:
+[docs/ART_CANVA_WORKFLOW.md](docs/ART_CANVA_WORKFLOW.md) ·
+prompt 15 hero: [docs/CANVA_PROMPTS.md](docs/CANVA_PROMPTS.md)
 
 Perbandingan 5 gaya: buka **🎭 Gaya Karakter** di game, atau lihat
 `assets/sprites/style_samples/`.

@@ -126,7 +126,7 @@ func _resolve_texture() -> Texture2D:
             _apply_custom_filter(_custom_texture)
     if _custom_texture != null:
         return _custom_texture
-    return Factory.make_anim_texture(style_id, anime_origin, _anim, _frame_index())
+    return Factory.make_anim_texture(style_id, anime_origin, _anim, _frame_index(), hero_id)
 
 
 ## Custom art lookup: per-hero first, then per-anime origin.
