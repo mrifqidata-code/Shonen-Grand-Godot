@@ -8,10 +8,12 @@ extends Control
 const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
 
 const RARITY_COLORS := {
-	"SSR": Color(0.80, 0.80, 0.85),
-	"SSR+": Color(0.25, 0.55, 1.00),
-	"UR": Color(0.62, 0.32, 0.95),
-	"UR+": Color(0.95, 0.32, 0.72),
+	"N": Color(0.62, 0.64, 0.70),
+	"R": Color(0.48, 0.79, 0.52),
+	"SR": Color(0.36, 0.60, 0.95),
+	"SSR": Color(0.60, 0.36, 0.95),
+	"SSR+": Color(0.25, 0.75, 0.95),
+	"UR": Color(0.98, 0.40, 0.75),
 	"EX": Color(0.98, 0.75, 0.14),
 }
 const GOLD := Color("d8b24a")
@@ -205,16 +207,9 @@ func _pool_for_tier(pool: Array, min_tier: int) -> Array:
 func _build_featured() -> void:
 	for child in featured_grid.get_children():
 		child.queue_free()
-	var order := ["EX", "UR+", "UR", "SSR+", "SSR"]
 	var heroes := _pool()
 	heroes.sort_custom(func(a, b):
-		var ia := order.find(str(a["rarity"]))
-		var ib := order.find(str(b["rarity"]))
-		if ia == -1:
-			ia = 99
-		if ib == -1:
-			ib = 99
-		return ia < ib
+		return GameConfig.rarity_rank(str(a["rarity"])) > GameConfig.rarity_rank(str(b["rarity"]))
 	)
 	for t in heroes:
 		featured_grid.add_child(_hero_card(t, 64))
@@ -386,13 +381,12 @@ func _show_results(heroes: Array) -> void:
 
 
 func _best_rarity(heroes: Array) -> String:
-	var order := ["SSR", "SSR+", "UR", "UR+", "EX"]
-	var best := 0
+	var best := "N"
 	for hero in heroes:
-		var idx := order.find(str(hero["rarity"]))
-		if idx > best:
-			best = idx
-	return order[best]
+		var rarity := str(hero["rarity"])
+		if GameConfig.rarity_rank(rarity) > GameConfig.rarity_rank(best):
+			best = rarity
+	return best
 
 
 func _style(bg: Color, border: Color, width: int, radius: int) -> StyleBoxFlat:

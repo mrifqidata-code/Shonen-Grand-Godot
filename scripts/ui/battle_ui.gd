@@ -6,7 +6,7 @@ extends Control
 const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
 const CutinBackdropScript := preload("res://scripts/ui/cutin_backdrop.gd")
 
-const ITEM_NAMES := {"exp_potion": "EXP Potion", "hero_shard": "Hero Shard", "courage_essence": "Courage Essence"}
+const ITEM_NAMES := {"exp_potion": "EXP Potion", "hero_shard": "Hero Shard", "courage_essence": "Courage Essence", "soul_crystal": "Soul Crystal"}
 
 const ENERGY_COLOR := Color("f7b733")
 const ENEMY_ENERGY_COLOR := Color("b06cff")
@@ -40,11 +40,13 @@ var _cut_in_count := 0
 
 
 func _ready() -> void:
-	$VBox/BackBtn.pressed.connect(func(): SceneManager.change_scene("res://scenes/main.tscn"))
+	var mode := _mode()
+	var back := "res://scenes/main.tscn" if mode == "campaign" else "res://scenes/ui/pve.tscn"
+	$VBox/BackBtn.pressed.connect(func(): SceneManager.change_scene(back))
 	start_btn.pressed.connect(_on_start_battle)
 	skip_btn.pressed.connect(func(): _skip = true)
 	ok_btn.pressed.connect(_on_result_ok)
-	stage_input.value = GameManager.progress["current_campaign_stage"]
+	stage_input.value = GameManager.pve_floor(mode)
 	stage_input.value_changed.connect(func(_value): _preview_stage())
 	_style_result_panel()
 	_setup_no_team_notice()
@@ -103,10 +105,15 @@ func _setup_no_team_notice() -> void:
 
 func update_info() -> void:
 	var heroes := _player_heroes()
-	var stage := int(GameManager.progress["current_campaign_stage"])
-	info_label.text = "Tim: %d hero • Campaign stage %d" % [heroes.size(), stage]
+	var mode := _mode()
+	var mode_name := str(GameConfig.pve_mode(mode).get("name", "Campaign"))
+	info_label.text = "Tim: %d hero • %s %d" % [heroes.size(), mode_name, GameManager.pve_floor(mode)]
 	if no_team_box:
 		no_team_box.visible = heroes.is_empty()
+
+
+func _mode() -> String:
+	return GameManager.pending_pve_mode
 
 
 func _player_heroes() -> Array:
@@ -271,17 +278,17 @@ func _on_start_battle() -> void:
 	await _play_battle(result)
 
 	if result["winner"] == "player":
-		GameManager.add_gold(result["rewards"]["gold"])
+		var mode := _mode()
+		var gold_gain := int(round(float(result["rewards"]["gold"]) * GameConfig.pve_gold_mult(mode)))
+		GameManager.add_gold(gold_gain)
 		GameManager.add_exp(result["rewards"]["exp"])
 		var mats: Dictionary = result["rewards"].get("materials", {})
 		for key in mats:
 			GameManager.add_progress(str(key), int(mats[key]))
-		if not mats.is_empty():
-			GameManager.save_game()
-		if stage >= int(GameManager.progress["current_campaign_stage"]):
-			GameManager.progress["current_campaign_stage"] = stage + 1
-			GameManager.save_game()
-			_pending_stage = stage + 1
+		var bonus: Dictionary = GameConfig.pve_bonus(mode)
+		for key in bonus:
+			GameManager.add_progress(str(key), int(bonus[key]))
+		_pending_stage = GameManager.advance_pve(mode, stage)
 		result_title.text = "🏆 VICTORY!"
 		result_title.add_theme_color_override("font_color", Color(0.2, 0.9, 0.4))
 	else:
@@ -294,12 +301,17 @@ func _on_start_battle() -> void:
 
 	var rewards_text := ""
 	if result["winner"] == "player":
-		rewards_text = "💰 %d Gold\n⭐ %d EXP" % [result["rewards"]["gold"], result["rewards"]["exp"]]
+		var mode := _mode()
+		var gold_gain := int(round(float(result["rewards"]["gold"]) * GameConfig.pve_gold_mult(mode)))
+		rewards_text = "💰 %d Gold\n⭐ %d EXP" % [gold_gain, result["rewards"]["exp"]]
 		for item in result["rewards"]["items"]:
 			rewards_text += "\n📦 " + str(ITEM_NAMES.get(item, item))
 		var mats_display: Dictionary = result["rewards"].get("materials", {})
 		for key in mats_display:
 			rewards_text += "\n💫 %d %s" % [int(mats_display[key]), str(ITEM_NAMES.get(key, key))]
+		var bonus_display: Dictionary = GameConfig.pve_bonus(mode)
+		for key in bonus_display:
+			rewards_text += "\n🎁 %d %s" % [int(bonus_display[key]), str(ITEM_NAMES.get(key, key))]
 	else:
 		rewards_text = "Tidak ada reward — naikkan level hero / ganti tim, lalu coba lagi."
 	rewards_label.text = rewards_text

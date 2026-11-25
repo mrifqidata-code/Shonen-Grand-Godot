@@ -18,6 +18,7 @@ const SCENES := {
 	"battle": "res://scenes/ui/battle.tscn",
 	"bag": "res://scenes/ui/inventory.tscn",
 	"store": "res://scenes/ui/store.tscn",
+	"pve": "res://scenes/ui/pve.tscn",
 	"style": "res://scenes/ui/character_style.tscn",
 	"canva": "res://scenes/ui/canva_generator.tscn",
 	"home": "res://scenes/main.tscn",
@@ -161,7 +162,7 @@ func _build_feature_grid(w: float, h: float) -> void:
 		["👥", "Hero", "heroes"],
 		["🛡️", "Team", "team"],
 		["📦", "Bag", "bag"],
-		["🗼", "Tower", "battle"],
+		["🗼", "Tower", "pve"],
 		["🎭", "Style", "style"],
 		["🎨", "Canva", "canva"],
 		["🏆", "Ranking", "heroes"],
@@ -303,7 +304,7 @@ func _build_rails(w: float, h: float) -> void:
 	]
 	var right := [
 		["👁", "Preview", "style"],
-		["📜", "Quest", "battle"],
+		["📜", "Quest", "pve"],
 		["🎒", "Bag", "bag"],
 		["📅", "Dailies", "store"],
 	]

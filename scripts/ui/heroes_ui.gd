@@ -5,12 +5,14 @@ extends Control
 
 const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
 
-const RARITY_ORDER := ["EX", "UR+", "UR", "SSR+", "SSR"]
+const RARITY_ORDER := ["N", "R", "SR", "SSR", "SSR+", "UR", "EX"]
 const RARITY_COLORS := {
-	"SSR": Color(0.80, 0.80, 0.85),
-	"SSR+": Color(0.25, 0.55, 1.00),
-	"UR": Color(0.62, 0.32, 0.95),
-	"UR+": Color(0.95, 0.32, 0.72),
+	"N": Color(0.62, 0.64, 0.70),
+	"R": Color(0.48, 0.79, 0.52),
+	"SR": Color(0.36, 0.60, 0.95),
+	"SSR": Color(0.60, 0.36, 0.95),
+	"SSR+": Color(0.25, 0.75, 0.95),
+	"UR": Color(0.98, 0.40, 0.75),
 	"EX": Color(0.98, 0.75, 0.14),
 }
 const GOLD := Color("d8b24a")
@@ -72,14 +74,10 @@ func _sorted_heroes() -> Array:
 			heroes.sort_custom(func(a, b): return str(a.get("hero_name", "")) < str(b.get("hero_name", "")))
 		_:
 			heroes.sort_custom(func(a, b):
-				var ia := RARITY_ORDER.find(str(a.get("rarity", "SSR")))
-				var ib := RARITY_ORDER.find(str(b.get("rarity", "SSR")))
-				if ia == -1:
-					ia = 99
-				if ib == -1:
-					ib = 99
+				var ia := GameConfig.rarity_rank(str(a.get("rarity", "SR")))
+				var ib := GameConfig.rarity_rank(str(b.get("rarity", "SR")))
 				if ia != ib:
-					return ia < ib
+					return ia > ib
 				return int(a.get("level", 1)) > int(b.get("level", 1))
 			)
 	return heroes

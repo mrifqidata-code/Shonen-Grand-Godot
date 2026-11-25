@@ -21,6 +21,9 @@ var progress: Dictionary = {
 var heroes: Array = []
 var teams: Array = []
 
+# PvE entry point used by the battle scene (set by the PvE hub).
+var pending_pve_mode: String = "campaign"
+
 # Player preferences (art style, toggles). Not reset by init_new_game().
 var settings: Dictionary = {
     "character_style": "px64",
@@ -30,7 +33,7 @@ const SAVE_PATH = "user://save.json"
 const MAX_IDLE_HOURS = 8
 
 # Granted once to an empty account so the player can battle immediately.
-const STARTER_HERO_IDS = ["naruto_uzumaki", "luffy_monkey", "ichigo_kurosaki"]
+const STARTER_HERO_IDS = ["naruto_shippuden", "rukia", "zoro"]
 
 func _ready():
     load_game()
@@ -120,6 +123,35 @@ func hero_power(hero: Dictionary) -> int:
     var base := float(hero.get("base_hp", 0)) + float(hero.get("base_atk", 0)) * 5.0 + float(hero.get("base_def", 0)) * 3.0
     return int(base * mult)
 
+func pve_floor(mode: String) -> int:
+    match mode:
+        "tower": return int(progress.get("tower_floor", 1))
+        "maze": return int(progress.get("maze_floor", 1))
+        "trial": return int(progress.get("trial_floor", 1))
+        _: return int(progress.get("current_campaign_stage", 1))
+
+func pve_set_mode(mode: String, stage: int = -1):
+    pending_pve_mode = mode
+    if stage > 0:
+        match mode:
+            "tower": progress["tower_floor"] = stage
+            "maze": progress["maze_floor"] = stage
+            "trial": progress["trial_floor"] = stage
+            _: progress["current_campaign_stage"] = stage
+        save_game()
+
+func advance_pve(mode: String, cleared_stage: int) -> int:
+    var next := cleared_stage + 1
+    match mode:
+        "tower": progress["tower_floor"] = next
+        "maze": progress["maze_floor"] = next
+        "trial": progress["trial_floor"] = next
+        _:
+            if cleared_stage >= int(progress.get("current_campaign_stage", 1)):
+                progress["current_campaign_stage"] = next
+    save_game()
+    return next
+
 func _ensure_progress_keys():
     var defaults := {
         "friendship_points": 100,
@@ -128,6 +160,8 @@ func _ensure_progress_keys():
         "hero_shards": 0,
         "courage_essence": 100,
         "soul_crystal": 30,
+        "maze_floor": 1,
+        "trial_floor": 1,
     }
     var changed := false
     for key in defaults:
@@ -153,6 +187,8 @@ func init_new_game():
         "idle_accumulated_at": Time.get_unix_time_from_system(),
         "current_campaign_stage": 1,
         "tower_floor": 1,
+        "maze_floor": 1,
+        "trial_floor": 1,
         "last_login": Time.get_unix_time_from_system(),
     }
     heroes = []

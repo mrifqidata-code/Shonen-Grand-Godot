@@ -8,10 +8,10 @@ const Factory := preload("res://scripts/services/character_sprite_factory.gd")
 const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
 
 const SAMPLE_HEROES := [
-    {"label": "Naruto", "origin": "Naruto", "hero_id": "naruto_uzumaki"},
-    {"label": "Gojo", "origin": "Jujutsu Kaisen", "hero_id": "gojo_satoru"},
-    {"label": "Ichigo", "origin": "Bleach", "hero_id": "ichigo_kurosaki"},
-    {"label": "Luffy", "origin": "One Piece", "hero_id": "luffy_monkey"},
+    {"label": "Naruto", "origin": "Naruto", "hero_id": "naruto_six_path"},
+    {"label": "Gojo", "origin": "Jujutsu Kaisen", "hero_id": "gojo"},
+    {"label": "Ichigo", "origin": "Bleach", "hero_id": "ichigo_final"},
+    {"label": "Luffy", "origin": "One Piece", "hero_id": "luffy_gear5"},
 ]
 
 @onready var style_list: VBoxContainer = $VBox/Scroll/StyleList
@@ -110,7 +110,7 @@ func _make_style_card(style: Dictionary) -> PanelContainer:
     view.custom_minimum_size = Vector2(128, 128)
     view.style_id = style["id"]
     view.anime_origin = "Naruto"
-    view.hero_id = "naruto_uzumaki"
+    view.hero_id = "naruto_six_path"
     frame.add_child(view)
     row.add_child(frame)
 

@@ -6,14 +6,33 @@ extends RefCounted
 class_name GameConfig
 
 # ------------------------------------------------------------------ rarity ---
-# Twilight weights 3 pull tiers per banner on a 10_000 basis. Our rarities map
-# onto those tiers so the odds shown to the player match the real numbers.
+# Seven-tier ladder from the roster. Summon weights still roll 3 pull tiers
+# (base / mid / top), so rarities map onto those buckets.
 const RARITY_TIERS := {
-	"SSR": 0, "SSR+": 0,
-	"UR": 1, "UR+": 1,
-	"EX": 2,
+	"N": 0, "R": 0, "SR": 0, "SSR": 0,
+	"SSR+": 1,
+	"UR": 2, "EX": 2,
 }
-const TIER_LABELS := ["SSR", "UR", "EX"]
+const TIER_LABELS := ["N–SSR", "SSR+", "UR/EX"]
+const RARITY_ORDER := ["N", "R", "SR", "SSR", "SSR+", "UR", "EX"]
+const RARITY_COLORS := {
+	"N": Color(0.62, 0.64, 0.70),
+	"R": Color(0.48, 0.79, 0.52),
+	"SR": Color(0.36, 0.60, 0.95),
+	"SSR": Color(0.60, 0.36, 0.95),
+	"SSR+": Color(0.25, 0.75, 0.95),
+	"UR": Color(0.98, 0.40, 0.75),
+	"EX": Color(0.98, 0.75, 0.14),
+}
+
+
+static func rarity_rank(rarity: String) -> int:
+	var idx := RARITY_ORDER.find(rarity)
+	return idx if idx >= 0 else -1
+
+
+static func rarity_color(rarity: String) -> Color:
+	return RARITY_COLORS.get(rarity, Color(0.6, 0.62, 0.7))
 
 # ------------------------------------------------------------------ summon ---
 # per = cost of a single pull in <key> currency.
@@ -131,6 +150,32 @@ static func grade_cost(grade: int) -> Dictionary:
 
 static func awaken_cost(awaken: int) -> Dictionary:
 	return {"courage_essence": 20 + awaken * 20, "soul_crystal": 5 + awaken * 5}
+
+
+# -------------------------------------------------------------------- PvE ---
+# Mode hub mirrors Twilight's PvE spread: Campaign, Monster Tower, Maze and
+# Mountain Trial. Each mode keeps its own floor counter and reward focus.
+const PVE_MODES := [
+	{"id": "campaign", "name": "Campaign", "icon": "⚔️", "desc": "Stage cerita utama.", "bonus": {}},
+	{"id": "tower", "name": "Monster Tower", "icon": "🗼", "desc": "Naik terus tanpa batas. Hadiah Soul Crystal.", "bonus": {"soul_crystal": 2}},
+	{"id": "maze", "name": "Maze", "icon": "🌀", "desc": "Labirin stage. Emas berlipat.", "bonus": {}, "gold_mult": 2.0},
+	{"id": "trial", "name": "Mountain Trial", "icon": "⛰️", "desc": "Ujian gunung. Hadiah Courage Essence.", "bonus": {"courage_essence": 5}},
+]
+
+
+static func pve_mode(mode_id: String) -> Dictionary:
+	for m in PVE_MODES:
+		if str(m["id"]) == mode_id:
+			return m
+	return {}
+
+
+static func pve_bonus(mode_id: String) -> Dictionary:
+	return pve_mode(mode_id).get("bonus", {})
+
+
+static func pve_gold_mult(mode_id: String) -> float:
+	return float(pve_mode(mode_id).get("gold_mult", 1.0))
 
 
 static func level_cap(limit_break: int) -> int:
