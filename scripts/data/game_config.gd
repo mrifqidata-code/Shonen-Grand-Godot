@@ -66,6 +66,45 @@ const BOND_TIERS := [
 ]
 
 
+# ------------------------------------------------------------------ store ---
+# Goods mirror Twilight's Store / Exchange / daily rewards: each entry costs one
+# currency and grants one or more of the tracked resources. Costs are economy
+# placeholders; retune freely once the design pass lands.
+const STORE_TABS := ["gold", "diamond", "exchange"]
+const STORE_GOODS := {
+	"gold": [
+		{"icon": "💠", "name": "Hero Shard ×5", "cost_key": "gold", "cost": 2000, "grant": {"hero_shards": 5}},
+		{"icon": "📜", "name": "Advanced Scroll ×1", "cost_key": "gold", "cost": 5000, "grant": {"advanced_scrolls": 1}},
+		{"icon": "🤝", "name": "Friendship ×200", "cost_key": "gold", "cost": 1500, "grant": {"friendship_points": 200}},
+		{"icon": "🎫", "name": "Ticket ×1", "cost_key": "gold", "cost": 3000, "grant": {"tickets": 1}},
+	],
+	"diamond": [
+		{"icon": "🎫", "name": "Ticket ×5", "cost_key": "diamonds", "cost": 300, "grant": {"tickets": 5}},
+		{"icon": "📜", "name": "Advanced Scroll ×5", "cost_key": "diamonds", "cost": 500, "grant": {"advanced_scrolls": 5}},
+		{"icon": "💠", "name": "Hero Shard ×50", "cost_key": "diamonds", "cost": 800, "grant": {"hero_shards": 50}},
+		{"icon": "🤝", "name": "Friendship ×1000", "cost_key": "diamonds", "cost": 400, "grant": {"friendship_points": 1000}},
+	],
+	"exchange": [
+		{
+			"icon": "🎁", "name": "Random Hero (SSR+)",
+			"cost_key": "hero_shards", "cost": 100, "grant_hero": true,
+		},
+		{
+			"icon": "⭐", "name": "Star Shard ×1",
+			"cost_key": "hero_shards", "cost": 300, "grant": {"star_shards": 1},
+		},
+	],
+}
+
+
+static func store_tab_label(tab: String) -> String:
+	match tab:
+		"gold": return "💰 Gold"
+		"diamond": return "💎 Diamond"
+		"exchange": return "🔁 Exchange"
+		_: return tab
+
+
 static func level_cap(limit_break: int) -> int:
 	var idx := clampi(limit_break, 0, LEVEL_CAPS.size() - 1)
 	return int(LEVEL_CAPS[idx])

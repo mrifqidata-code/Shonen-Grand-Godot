@@ -17,6 +17,7 @@ const SCENES := {
 	"team": "res://scenes/ui/team.tscn",
 	"battle": "res://scenes/ui/battle.tscn",
 	"bag": "res://scenes/ui/inventory.tscn",
+	"store": "res://scenes/ui/store.tscn",
 	"style": "res://scenes/ui/character_style.tscn",
 	"canva": "res://scenes/ui/canva_generator.tscn",
 	"home": "res://scenes/main.tscn",
@@ -164,7 +165,7 @@ func _build_feature_grid(w: float, h: float) -> void:
 		["🎭", "Style", "style"],
 		["🎨", "Canva", "canva"],
 		["🏆", "Ranking", "heroes"],
-		["📅", "Dailies", "bag"],
+		["📅", "Dailies", "store"],
 	]
 	var cols := 5
 	var cell_w := w / float(cols)
@@ -226,7 +227,7 @@ func _build_stage(w: float, h: float) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	stage.add_child(row)
-	for entry in [["🌙", "Summoning\nCircle", "summon"], ["🔮", "Evolution\nTemple", "heroes"], ["🛒", "Twilight\nShop", "bag"]]:
+	for entry in [["🌙", "Summoning\nCircle", "summon"], ["🔮", "Evolution\nTemple", "heroes"], ["🛒", "Twilight\nShop", "store"]]:
 		var b := Button.new()
 		b.text = "%s\n%s" % [entry[0], entry[1]]
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -304,7 +305,7 @@ func _build_rails(w: float, h: float) -> void:
 		["👁", "Preview", "style"],
 		["📜", "Quest", "battle"],
 		["🎒", "Bag", "bag"],
-		["📅", "Dailies", "bag"],
+		["📅", "Dailies", "store"],
 	]
 	_rail(left, 4.0, h * 0.40)
 	_rail(right, w - 4.0 - 78.0, h * 0.40)

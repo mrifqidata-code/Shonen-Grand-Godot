@@ -39,6 +39,40 @@ func _ready():
         progress["idle_accumulated_at"] = Time.get_unix_time_from_system()
         progress["last_login"] = Time.get_unix_time_from_system()
 
+func buy_goods(goods: Dictionary) -> bool:
+    var cost_key := str(goods.get("cost_key", ""))
+    var cost := int(goods.get("cost", 0))
+    if cost_key.is_empty() or int(progress.get(cost_key, 0)) < cost:
+        return false
+    progress[cost_key] = int(progress.get(cost_key, 0)) - cost
+    var grant: Dictionary = goods.get("grant", {})
+    for key in grant:
+        progress[key] = int(progress.get(key, 0)) + int(grant[key])
+    if bool(goods.get("grant_hero", false)):
+        var premium := HeroesData.get_all_templates().filter(func(t): return str(t["rarity"]) in ["SSR+", "UR", "UR+", "EX"])
+        if not premium.is_empty():
+            add_hero(HeroesData.create_hero_from_template(premium[randi() % premium.size()]))
+    save_game()
+    return true
+
+func today_key() -> String:
+    var d := Time.get_date_dict_from_system()
+    return "%04d-%02d-%02d" % [d["year"], d["month"], d["day"]]
+
+func can_claim_daily() -> bool:
+    return str(progress.get("last_daily_date", "")) != today_key()
+
+func claim_daily() -> bool:
+    if not can_claim_daily():
+        return false
+    progress["last_daily_date"] = today_key()
+    progress["gold"] = int(progress.get("gold", 0)) + 5000
+    progress["diamonds"] = int(progress.get("diamonds", 0)) + 100
+    progress["tickets"] = int(progress.get("tickets", 0)) + 1
+    progress["friendship_points"] = int(progress.get("friendship_points", 0)) + 100
+    save_game()
+    return true
+
 func _ensure_progress_keys():
     var defaults := {
         "friendship_points": 100,
