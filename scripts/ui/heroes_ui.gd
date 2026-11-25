@@ -41,6 +41,16 @@ func create_hero_card(hero: Dictionary) -> PanelContainer:
     var panel = PanelContainer.new()
     panel.custom_minimum_size = Vector2(0, 144)
 
+    # Rarity-coloured frame, like a gacha card.
+    var rarity_color: Color = RARITY_COLORS.get(hero["rarity"], Color(0.4, 0.4, 0.5))
+    var frame := StyleBoxFlat.new()
+    frame.bg_color = Color(0.08, 0.08, 0.15, 0.92)
+    frame.border_color = rarity_color
+    frame.set_border_width_all(2)
+    frame.set_corner_radius_all(10)
+    frame.set_content_margin_all(10)
+    panel.add_theme_stylebox_override("panel", frame)
+
     var row = HBoxContainer.new()
     row.add_theme_constant_override("separation", 10)
     panel.add_child(row)

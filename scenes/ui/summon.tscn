@@ -23,44 +23,106 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = 16.0
-offset_right = -16.0
-offset_bottom = -16.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+theme_override_constants/separation = 8
+
+[node name="HeaderRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Header" type="Label" parent="VBox/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🎰 Summon Hero"
+theme_override_font_sizes/font_size = 20
+
+[node name="BackBtn" type="Button" parent="VBox/HeaderRow"]
+layout_mode = 2
+text = "← Menu"
+name = "BackBtn"
+
+[node name="Banner" type="PanelContainer" parent="VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 230)
+name = "Banner"
+
+[node name="HBox" type="HBoxContainer" parent="VBox/Banner"]
+layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Header" type="Label" parent="VBox"]
+[node name="BannerArt" type="Control" parent="VBox/Banner/HBox"]
+custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
-text = "Summon Hero"
+name = "BannerArt"
+
+[node name="BannerInfo" type="VBoxContainer" parent="VBox/Banner/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 2
+
+[node name="RateUp" type="Label" parent="VBox/Banner/HBox/BannerInfo"]
+layout_mode = 2
+text = "RATE UP"
+theme_override_colors/font_color = Color(0.98, 0.75, 0.14, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="BannerName" type="Label" parent="VBox/Banner/HBox/BannerInfo"]
+layout_mode = 2
+text = "-"
 theme_override_font_sizes/font_size = 20
+
+[node name="BannerMeta" type="Label" parent="VBox/Banner/HBox/BannerInfo"]
+layout_mode = 2
+text = "-"
+theme_override_colors/font_color = Color(0.65, 0.68, 0.78, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="BannerDesc" type="Label" parent="VBox/Banner/HBox/BannerInfo"]
+layout_mode = 2
+text = "Peluang muncul lebih tinggi di banner ini."
+theme_override_colors/font_color = Color(0.6, 0.62, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+autowrap_mode = 2
 
 [node name="TicketPanel" type="PanelContainer" parent="VBox"]
 layout_mode = 2
 
-[node name="VBox" type="VBoxContainer" parent="VBox/TicketPanel"]
-layout_mode = 2
-
-[node name="TicketLabel" type="Label" parent="VBox/TicketPanel/VBox"]
-layout_mode = 2
-text = "Ticket Tersedia: 0"
-horizontal_alignment = 1
-name = "TicketLabel"
-
-[node name="BtnRow" type="HBoxContainer" parent="VBox/TicketPanel/VBox"]
+[node name="HBox" type="HBoxContainer" parent="VBox/TicketPanel"]
 layout_mode = 2
 alignment = 1
+theme_override_constants/separation = 6
 
-[node name="Summon1Btn" type="Button" parent="VBox/TicketPanel/VBox/BtnRow"]
+[node name="TicketIcon" type="Label" parent="VBox/TicketPanel/HBox"]
 layout_mode = 2
-text = "Summon x1 (1 🎫)"
+text = "🎫"
+
+[node name="TicketLabel" type="Label" parent="VBox/TicketPanel/HBox"]
+layout_mode = 2
+text = "0 ticket"
+name = "TicketLabel"
+
+[node name="SummonRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Summon1Btn" type="Button" parent="VBox/SummonRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Summon ×1"
+custom_minimum_size = Vector2(0, 52)
 name = "Summon1Btn"
 
-[node name="Summon10Btn" type="Button" parent="VBox/TicketPanel/VBox/BtnRow"]
+[node name="Summon10Btn" type="Button" parent="VBox/SummonRow"]
 layout_mode = 2
-text = "Summon x10 (10 🎫)"
+size_flags_horizontal = 3
+text = "Summon ×10"
+custom_minimum_size = Vector2(0, 52)
 name = "Summon10Btn"
 
-[node name="StatusLabel" type="Label" parent="VBox/TicketPanel/VBox"]
+[node name="StatusLabel" type="Label" parent="VBox"]
 layout_mode = 2
 text = ""
 horizontal_alignment = 1
@@ -68,37 +130,10 @@ autowrap_mode = 2
 theme_override_font_sizes/font_size = 12
 name = "StatusLabel"
 
-[node name="ResultPanel" type="PanelContainer" parent="VBox"]
+[node name="FeaturedTitle" type="Label" parent="VBox"]
 layout_mode = 2
-visible = false
-name = "ResultPanel"
-
-[node name="VBox" type="VBoxContainer" parent="VBox/ResultPanel"]
-layout_mode = 2
-
-[node name="ResultTitle" type="Label" parent="VBox/ResultPanel/VBox"]
-layout_mode = 2
-text = "✨ Hasil Summon"
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 18
-
-[node name="ResultName" type="Label" parent="VBox/ResultPanel/VBox"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-theme_override_font_sizes/font_size = 22
-name = "ResultName"
-
-[node name="ResultInfo" type="Label" parent="VBox/ResultPanel/VBox"]
-layout_mode = 2
-text = ""
-horizontal_alignment = 1
-name = "ResultInfo"
-
-[node name="RateUpLabel" type="Label" parent="VBox"]
-layout_mode = 2
-text = "Rate-Up Banner (Featured SSR+)"
-theme_override_font_sizes/font_size = 16
+text = "Featured Hero"
+theme_override_font_sizes/font_size = 15
 
 [node name="Scroll" type="ScrollContainer" parent="VBox"]
 layout_mode = 2
@@ -112,7 +147,44 @@ name = "FeaturedGrid"
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 
-[node name="BackBtn" type="Button" parent="VBox"]
+[node name="ResultPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+custom_minimum_size = Vector2(340, 0)
+name = "ResultPanel"
+
+[node name="VBox" type="VBoxContainer" parent="ResultPanel"]
 layout_mode = 2
-text = "← Kembali ke Menu"
-custom_minimum_size = Vector2(0, 40)
+theme_override_constants/separation = 8
+
+[node name="ResultTitle" type="Label" parent="ResultPanel/VBox"]
+layout_mode = 2
+text = "🎉 Hasil Summon"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+
+[node name="ResultCard" type="VBoxContainer" parent="ResultPanel/VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 4
+name = "ResultCard"
+
+[node name="ResultGrid" type="GridContainer" parent="ResultPanel/VBox"]
+layout_mode = 2
+columns = 4
+name = "ResultGrid"
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+
+[node name="OkBtn" type="Button" parent="ResultPanel/VBox"]
+layout_mode = 2
+text = "OK"
+custom_minimum_size = Vector2(0, 44)
+name = "OkBtn"
