@@ -23,10 +23,11 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = 16.0
-offset_right = -16.0
-offset_bottom = -16.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+theme_override_constants/separation = 8
 
 [node name="Header" type="HBoxContainer" parent="VBox"]
 layout_mode = 2
@@ -34,13 +35,23 @@ layout_mode = 2
 [node name="Title" type="Label" parent="VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Hero Koleksi"
+text = "👥 Hero"
 theme_override_font_sizes/font_size = 20
 
 [node name="CountLabel" type="Label" parent="VBox/Header"]
 layout_mode = 2
 text = "(0)"
 name = "CountLabel"
+
+[node name="SortBtn" type="Button" parent="VBox/Header"]
+layout_mode = 2
+text = "Urut: Rarity"
+name = "SortBtn"
+
+[node name="BackBtn" type="Button" parent="VBox/Header"]
+layout_mode = 2
+text = "← Menu"
+name = "BackBtn"
 
 [node name="Scroll" type="ScrollContainer" parent="VBox"]
 layout_mode = 2
@@ -49,10 +60,73 @@ size_flags_vertical = 3
 [node name="HeroGrid" type="GridContainer" parent="VBox/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-columns = 1
+columns = 3
+name = "HeroGrid"
+theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 
-[node name="BackBtn" type="Button" parent="VBox"]
+[node name="DetailPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+custom_minimum_size = Vector2(340, 0)
+name = "DetailPanel"
+
+[node name="VBox" type="VBoxContainer" parent="DetailPanel"]
 layout_mode = 2
-text = "← Kembali ke Menu"
+theme_override_constants/separation = 6
+
+[node name="DetailPortrait" type="Control" parent="DetailPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 160)
+name = "DetailPortrait"
+
+[node name="DetailName" type="Label" parent="DetailPanel/VBox"]
+layout_mode = 2
+text = "-"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+name = "DetailName"
+
+[node name="DetailMeta" type="Label" parent="DetailPanel/VBox"]
+layout_mode = 2
+text = "-"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+name = "DetailMeta"
+
+[node name="DetailStats" type="Label" parent="DetailPanel/VBox"]
+layout_mode = 2
+text = "-"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 13
+name = "DetailStats"
+
+[node name="DetailButtons" type="HBoxContainer" parent="DetailPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+name = "DetailButtons"
+
+[node name="UpgradeBtn" type="Button" parent="DetailPanel/VBox/DetailButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Upgrade"
+name = "UpgradeBtn"
+
+[node name="StarBtn" type="Button" parent="DetailPanel/VBox/DetailButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Star Up"
+name = "StarBtn"
+
+[node name="CloseBtn" type="Button" parent="DetailPanel/VBox"]
+layout_mode = 2
+text = "Tutup"
 custom_minimum_size = Vector2(0, 40)
+name = "CloseBtn"
