@@ -43,7 +43,7 @@ if (-not $SkipArt -and (Test-Path $inbox)) {
     }
 }
 
-# 2. Build (also runs the Godot resource import step).
+# 2. Build (export only; Godot imports changed resources during export).
 & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "build_android.ps1") -Godot $Godot
 
 $apk = Join-Path $projectDir "builds\shonen_grand_release.apk"
@@ -54,7 +54,6 @@ if (-not (Test-Path $apk)) {
 # 2b. Refuse to ship a stale APK (wrong version name inside the file).
 $aapt2 = Join-Path $env:LOCALAPPDATA "Android\Sdk\build-tools\36.0.0\aapt2.exe"
 if (Test-Path $aapt2) {
-    # aapt2 writes harmless warnings to stderr; keep them from aborting the script.
     $previous = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
     $badging = & $aapt2 dump badging $apk 2>&1 | Select-String "package:"

@@ -2,6 +2,28 @@
 extends RefCounted
 class_name BattleEngine
 
+# Ultimate energy: every basic action charges the gauge; at 100 the next action
+# becomes the hero's ultimate skill (cinematic cut-in in the battle UI).
+const ENERGY_MAX := 100
+const PLAYER_ENERGY_PER_ACTION := 25  # ultimate every 5th action
+const ENEMY_ENERGY_PER_ACTION := 20   # ultimate every 6th action
+const ENEMY_ULT_MULT := 3.5
+const ENEMY_ULT_NAME := "Dark Burst"
+
+
+## The ultimate skill of a hero: {name, mult, desc}. Falls back to a generic one
+## for enemies and any hero template without an ultimate entry.
+static func ultimate_of(hero: Dictionary) -> Dictionary:
+    for skill in hero.get("skills", []):
+        if str(skill.get("type", "")) == "ultimate":
+            return {
+                "name": str(skill.get("name", "Ultimate")),
+                "desc": str(skill.get("desc", "")),
+                "mult": float(skill.get("mult", 4.0)),
+            }
+    return {"name": ENEMY_ULT_NAME, "desc": "", "mult": ENEMY_ULT_MULT}
+
+
 static func calculate_damage(attacker: Dictionary, defender: Dictionary, skill_mult: float = 1.0) -> Dictionary:
     var faction_adv = Faction.get_advantage(attacker["faction"], defender["faction"])
     var faction_crit = Faction.get_crit_bonus(attacker["faction"], defender["faction"])
@@ -35,20 +57,25 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
     var enemy_hp := []
     var player_max := []
     var enemy_max := []
+    var player_energy := []
+    var enemy_energy := []
 
     for h in player_team:
         var hp := player_max_hp(h)
         player_hp.append(hp)
         player_max.append(hp)
+        player_energy.append(0)
     for h in enemy_team:
         var hp := enemy_max_hp(h)
         enemy_hp.append(hp)
         enemy_max.append(hp)
+        enemy_energy.append(0)
 
     # Per-hit event log used by the battle playback UI (animations + damage numbers).
     var events := []
     var total_dealt := 0
     var total_taken := 0
+    var ultimates := 0
     var round_num := 0
     var max_rounds := 30
 
@@ -62,8 +89,14 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
             var target := find_target(enemy_hp)
             if target == -1:
                 break
-            var skill_mult := 4.0 if (round_num % 6 == 0) else (2.5 if (round_num % 3 == 0) else 1.0)
-            var result := calculate_damage(player_team[i], enemy_team[target], skill_mult)
+            var ult := ultimate_of(player_team[i])
+            var use_ult: bool = player_energy[i] >= ENERGY_MAX
+            var mult: float = float(ult["mult"]) if use_ult else 1.0
+            var energy_before := int(player_energy[i])
+            player_energy[i] = 0 if use_ult else mini(ENERGY_MAX, player_energy[i] + PLAYER_ENERGY_PER_ACTION)
+            if use_ult:
+                ultimates += 1
+            var result := calculate_damage(player_team[i], enemy_team[target], mult)
             enemy_hp[target] -= result["damage"]
             total_dealt += result["damage"]
             events.append({
@@ -73,14 +106,18 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
                 "target": target,
                 "damage": int(result["damage"]),
                 "crit": bool(result["is_crit"]),
-                "mult": skill_mult,
+                "mult": mult,
+                "ultimate": use_ult,
+                "skill": str(ult["name"]) if use_ult else "",
+                "energy_before": energy_before,
+                "energy_after": int(player_energy[i]),
                 "killed": enemy_hp[target] <= 0,
             })
 
         # Check win
         if enemy_hp.all(func(hp): return hp <= 0):
             return _battle_result(
-                "player", round_num, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max
+                "player", round_num, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max, ultimates
             )
 
         # Enemy attacks
@@ -90,8 +127,13 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
             var target := find_target(player_hp)
             if target == -1:
                 break
-            var skill_mult := 3.5 if (round_num % 6 == 0) else (2.0 if (round_num % 3 == 0) else 1.0)
-            var result := calculate_damage(enemy_team[i], player_team[target], skill_mult)
+            var use_ult: bool = enemy_energy[i] >= ENERGY_MAX
+            var mult: float = ENEMY_ULT_MULT if use_ult else 1.0
+            var energy_before := int(enemy_energy[i])
+            enemy_energy[i] = 0 if use_ult else mini(ENERGY_MAX, enemy_energy[i] + ENEMY_ENERGY_PER_ACTION)
+            if use_ult:
+                ultimates += 1
+            var result := calculate_damage(enemy_team[i], player_team[target], mult)
             player_hp[target] -= result["damage"]
             total_taken += result["damage"]
             events.append({
@@ -101,19 +143,23 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
                 "target": target,
                 "damage": int(result["damage"]),
                 "crit": bool(result["is_crit"]),
-                "mult": skill_mult,
+                "mult": mult,
+                "ultimate": use_ult,
+                "skill": ENEMY_ULT_NAME if use_ult else "",
+                "energy_before": energy_before,
+                "energy_after": int(enemy_energy[i]),
                 "killed": player_hp[target] <= 0,
             })
 
         # Check lose
         if player_hp.all(func(hp): return hp <= 0):
             return _battle_result(
-                "enemy", round_num, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max
+                "enemy", round_num, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max, ultimates
             )
 
     # Timeout
     return _battle_result(
-        "enemy", max_rounds, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max
+        "enemy", max_rounds, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max, ultimates
     )
 
 
@@ -126,7 +172,8 @@ static func _battle_result(
     player_hp: Array,
     enemy_hp: Array,
     player_max: Array,
-    enemy_max: Array
+    enemy_max: Array,
+    ultimates: int = 0
 ) -> Dictionary:
     var rewards: Dictionary
     if winner == "player":
@@ -138,6 +185,7 @@ static func _battle_result(
         "rounds": rounds,
         "damage_dealt": dealt,
         "damage_taken": taken,
+        "ultimates": ultimates,
         "rewards": rewards,
         "events": events,
         "player_hp": player_hp,

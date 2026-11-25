@@ -122,3 +122,35 @@ godot --path . --rendering-driver opengl3 --resolution 720x1280 `
 # Screenshot hasil akhir (tunggu playback selesai)
 ... --call=auto_battle --args=1 --wait=9 --out=res://screenshots/battle_victory.png
 ```
+
+---
+
+## 6. Ultimate skill cut-in
+
+Setiap hero punya **ultimate** (dari `skills` template, tipe `ultimate` dengan
+`mult` 2.0–8.0). Di battle, ultimate tidak dipakai tiap ronde — ada **gauge
+energi** di bawah HP bar:
+
+- Aksi biasa mengisi +25 energi (player) / +20 (musuh).
+- Pada aksi ke-5 (player) / ke-6 (musuh) energi sudah 100 → aksi itu jadi
+  ultimate: damage × mult, gauge kosong lagi.
+- Playback menampilkan **cut-in penuh layar**: dim, banner diagonal warna
+  aksen, portrait hero 3× pixel, nama skill besar, flash impact, lalu
+  angka damage. Musuh memakai warna violet dan nama `Dark Burst`.
+
+Cut-in penuh hanya untuk 3 ultimate pertama dalam satu pertarungan; setelah itu
+durasi dipotong supaya fight tetap cepat. Tombol **⏩ Lewati** langsung
+menutup cut-in dan mempercepat ke hasil akhir.
+
+Untuk menangkap screenshot cut-in:
+
+```powershell
+godot --path . --rendering-driver opengl3 --resolution 720x1280 `
+      --script res://tools/screenshot_scene.gd -- `
+      --scene=res://scenes/ui/battle.tscn --call=show_ultimate_preview `
+      --args=0 --wait=1.0 --out=res://screenshots/ultimate_cutin.png
+```
+
+`BattleEngine.ultimate_of(hero)` mengembalikan `{name, desc, mult}` — dipakai
+oleh UI dan AI analitik. Event battle menambah field `ultimate`, `skill`,
+`energy_before`, `energy_after` agar replay/analisis konsisten.

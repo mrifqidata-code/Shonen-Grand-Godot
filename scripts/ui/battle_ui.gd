@@ -7,6 +7,9 @@ const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
 
 const ITEM_NAMES := {"exp_potion": "EXP Potion", "hero_shard": "Hero Shard"}
 
+const ENERGY_COLOR := Color("f7b733")
+const ENEMY_ENERGY_COLOR := Color("b06cff")
+
 const PLAYER_HP_COLOR := Color("46d97a")
 const ENEMY_HP_COLOR := Color("ef5350")
 const BAR_BG_COLOR := Color(0.12, 0.13, 0.19)
@@ -32,6 +35,7 @@ var enemy_units: Array = []
 var _playing := false
 var _skip := false
 var _pending_stage := -1
+var _cut_in_count := 0
 
 
 func _ready() -> void:
@@ -213,7 +217,30 @@ func _make_unit(hero: Dictionary, max_hp: int, enemy: bool, unit_px: int) -> Dic
 	bar.add_theme_stylebox_override("fill", _bar_style(ENEMY_HP_COLOR if enemy else PLAYER_HP_COLOR))
 	box.add_child(bar)
 
-	return {"box": box, "view": view, "bar": bar, "hp": float(max_hp), "max": float(max_hp)}
+	# Ultimate gauge: fills with each action, empties when the ultimate fires.
+	var energy := ProgressBar.new()
+	energy.min_value = 0
+	energy.max_value = BattleEngine.ENERGY_MAX
+	energy.value = 0
+	energy.show_percentage = false
+	energy.custom_minimum_size = Vector2(unit_px - 16, 4)
+	energy.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	energy.add_theme_stylebox_override("background", _bar_style(BAR_BG_COLOR))
+	energy.add_theme_stylebox_override(
+		"fill", _bar_style(ENEMY_ENERGY_COLOR if enemy else ENERGY_COLOR)
+	)
+	box.add_child(energy)
+
+	return {
+		"box": box,
+		"view": view,
+		"bar": bar,
+		"energy_bar": energy,
+		"hero": hero,
+		"enemy": enemy,
+		"hp": float(max_hp),
+		"max": float(max_hp),
+	}
 
 
 func _bar_style(color: Color) -> StyleBoxFlat:
@@ -255,8 +282,8 @@ func _on_start_battle() -> void:
 		result_title.text = "💀 DEFEAT"
 		result_title.add_theme_color_override("font_color", Color(0.95, 0.25, 0.3))
 
-	result_details.text = "Rounds: %d\nDamage Dealt: %d\nDamage Taken: %d" % [
-		result["rounds"], result["damage_dealt"], result["damage_taken"]
+	result_details.text = "Rounds: %d\nDamage Dealt: %d\nDamage Taken: %d\nUltimates: %d" % [
+		result["rounds"], result["damage_dealt"], result["damage_taken"], result.get("ultimates", 0)
 	]
 
 	var rewards_text := ""
@@ -275,6 +302,7 @@ func _on_start_battle() -> void:
 func _play_battle(result: Dictionary) -> void:
 	_playing = true
 	_skip = false
+	_cut_in_count = 0
 	start_btn.disabled = true
 	start_btn.text = "⏳ Bertarung..."
 	skip_btn.visible = true
@@ -316,13 +344,22 @@ func _play_event(event: Dictionary, delay: float) -> void:
 	if float(actor["hp"]) <= 0.0:
 		return
 
+	var is_ult := bool(event.get("ultimate", false))
+	var energy_bar := actor.get("energy_bar") as ProgressBar
+	if is_ult:
+		if energy_bar != null:
+			energy_bar.value = BattleEngine.ENERGY_MAX
+		await _play_cut_in(actor, event)
+
 	actor["view"].play("attack")
 	await get_tree().create_timer(delay * 0.4).timeout
 
 	target["hp"] = maxf(0.0, float(target["hp"]) - float(event["damage"]))
 	(target["bar"] as ProgressBar).value = target["hp"]
 	target["view"].play("hurt")
-	_spawn_damage(target, int(event["damage"]), bool(event["crit"]), float(event["mult"]))
+	_spawn_damage(target, int(event["damage"]), bool(event["crit"]), float(event["mult"]), is_ult)
+	if energy_bar != null:
+		energy_bar.value = float(event.get("energy_after", 0))
 
 	if bool(event["killed"]):
 		target["hp"] = 0.0
@@ -332,30 +369,158 @@ func _play_event(event: Dictionary, delay: float) -> void:
 	await get_tree().create_timer(delay * 0.6).timeout
 
 
-func _spawn_damage(target: Dictionary, damage: int, crit: bool, mult: float) -> void:
-	var view: Control = target["view"]
-	var label := Label.new()
-	label.text = str(damage) + ("!" if crit else "")
-	label.add_theme_font_size_override("font_size", 24 if crit else 16)
-	var color := Color(1.0, 0.55, 0.2) if crit else Color(1, 1, 1)
-	if mult >= 3.0 and not crit:
-		color = Color(1.0, 0.86, 0.35)
-	label.add_theme_color_override("font_color", color)
-	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	label.add_theme_constant_override("outline_size", 4)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.custom_minimum_size = Vector2(48, 22)
+## Full-screen ultimate cut-in: dim, diagonal banner, zoomed hero, skill name.
+## Enemy ultimates use a violet accent. After the first three full cut-ins the
+## timing shortens so long fights do not drag.
+func _play_cut_in(actor: Dictionary, event: Dictionary) -> void:
+	if _skip:
+		return
+	_cut_in_count += 1
+	var quick := _cut_in_count > 3
+	var skill_name := str(event.get("skill", "ULTIMATE"))
+	var enemy := bool(actor.get("enemy", false))
+	var accent := ENEMY_ENERGY_COLOR if enemy else ENERGY_COLOR
+	var hero: Dictionary = actor.get("hero", {})
+	var screen := get_viewport_rect().size
 
-	var center := view.get_global_rect().get_center() - floaters.get_global_rect().position
-	# Jitter so several hits in a row stay readable instead of stacking.
-	label.position = center - Vector2(24, 12) + Vector2(randf_range(-16.0, 16.0), randf_range(-6.0, 6.0))
-	label.size = Vector2(48, 22)
-	floaters.add_child(label)
+	var layer := Control.new()
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.z_index = 20
+	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(layer)
+
+	var dim := ColorRect.new()
+	dim.color = Color(0.02, 0.02, 0.06, 0.0)
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(dim)
+
+	# Diagonal banner behind the name (two stacked bars).
+	var bar := ColorRect.new()
+	bar.color = Color(accent.r, accent.g, accent.b, 0.88)
+	bar.size = Vector2(screen.x * 1.5, 20)
+	bar.position = Vector2(-screen.x * 0.2, screen.y * 0.305)
+	bar.rotation = -0.10
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(bar)
+	var bar2 := ColorRect.new()
+	bar2.color = Color(accent.r, accent.g, accent.b, 0.45)
+	bar2.size = Vector2(screen.x * 1.5, 6)
+	bar2.position = Vector2(-screen.x * 0.2, screen.y * 0.352)
+	bar2.rotation = -0.10
+	bar2.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(bar2)
+
+	# Zoomed hero portrait (integer 2x/3x so pixel art stays crisp).
+	var side_px := 192 if screen.x >= 480 else 128
+	var view := CharacterViewScript.new()
+	view.custom_minimum_size = Vector2(side_px, side_px)
+	view.size = Vector2(side_px, side_px)
+	view.style_id = GameManager.get_character_style()
+	view.anime_origin = str(hero.get("anime_origin", "Enemy" if enemy else "Default"))
+	view.hero_id = "" if enemy else HeroesData.template_id_of(hero)
+	view.flip_h = enemy
+	view.position = Vector2(-side_px, screen.y * 0.44 - side_px * 0.5)
+	view.play("attack")
+	layer.add_child(view)
+
+	var caption := Label.new()
+	caption.text = "ULTIMATE"
+	caption.add_theme_font_size_override("font_size", 13)
+	caption.add_theme_color_override("font_color", accent)
+	caption.add_theme_constant_override("outline_size", 3)
+	caption.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	caption.position = Vector2(screen.x + 60.0, screen.y * 0.332)
+	layer.add_child(caption)
+
+	var name_label := Label.new()
+	name_label.text = skill_name.to_upper()
+	name_label.add_theme_font_size_override("font_size", 30 if screen.x >= 480 else 24)
+	name_label.add_theme_color_override("font_color", Color(1, 1, 1))
+	name_label.add_theme_constant_override("outline_size", 7)
+	name_label.add_theme_color_override(
+		"font_outline_color", Color(accent.r * 0.35, accent.g * 0.35, accent.b * 0.35, 1.0)
+	)
+	name_label.position = Vector2(screen.x + 60.0, screen.y * 0.365)
+	layer.add_child(name_label)
+
+	var flash := ColorRect.new()
+	flash.color = Color(1, 1, 1, 0.0)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(flash)
 
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(label, "position:y", label.position.y - 46.0, 0.7)
-	tween.tween_property(label, "modulate:a", 0.0, 0.35).set_delay(0.4)
+	tween.tween_property(dim, "color:a", 0.74, 0.12)
+	tween.tween_property(view, "position:x", screen.x * 0.08, 0.20)
+	tween.tween_property(caption, "position:x", screen.x * 0.44, 0.22)
+	tween.tween_property(name_label, "position:x", screen.x * 0.44, 0.22)
+	await get_tree().create_timer(0.26 if quick else 0.34).timeout
+
+	flash.color.a = 0.45
+	var fade := create_tween()
+	fade.tween_property(flash, "color:a", 0.0, 0.18)
+	await get_tree().create_timer(0.16 if quick else 0.22).timeout
+
+	var out_tween := create_tween()
+	out_tween.tween_property(layer, "modulate:a", 0.0, 0.16)
+	await get_tree().create_timer(0.16).timeout
+	layer.queue_free()
+
+
+## Shows the cut-in for the first team member (screenshot tooling / demos).
+func show_ultimate_preview(actor_index: int = 0) -> void:
+	_preview_stage()
+	await get_tree().process_frame
+	if player_units.is_empty():
+		return
+	var unit: Dictionary = player_units[clampi(actor_index, 0, player_units.size() - 1)]
+	var ult := BattleEngine.ultimate_of(unit["hero"])
+	var energy := unit.get("energy_bar") as ProgressBar
+	if energy != null:
+		energy.value = BattleEngine.ENERGY_MAX
+	await _play_cut_in(unit, {"side": "player", "skill": ult["name"]})
+
+
+func _spawn_damage(
+	target: Dictionary, damage: int, crit: bool, mult: float, is_ult: bool = false
+) -> void:
+	var view: Control = target["view"]
+	var label := Label.new()
+	label.text = str(damage) + ("!" if crit else "")
+	var font_size := 16
+	if crit:
+		font_size = 24
+	if is_ult:
+		font_size = 34
+	label.add_theme_font_size_override("font_size", font_size)
+	var color := Color(1.0, 0.55, 0.2) if crit else Color(1, 1, 1)
+	if mult >= 3.0 and not crit:
+		color = Color(1.0, 0.86, 0.35)
+	if is_ult:
+		color = Color(1.0, 0.80, 0.28)
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	label.add_theme_constant_override("outline_size", 5 if is_ult else 4)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var box_w := 72.0 if is_ult else 48.0
+	var box_h := 30.0 if is_ult else 22.0
+	label.custom_minimum_size = Vector2(box_w, box_h)
+
+	var center := view.get_global_rect().get_center() - floaters.get_global_rect().position
+	# Jitter so several hits in a row stay readable instead of stacking.
+	label.position = center - Vector2(box_w * 0.5, box_h * 0.5) + Vector2(
+		randf_range(-16.0, 16.0), randf_range(-6.0, 6.0)
+	)
+	label.size = Vector2(box_w, box_h)
+	floaters.add_child(label)
+
+	var rise := 66.0 if is_ult else 46.0
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position:y", label.position.y - rise, 0.8 if is_ult else 0.7)
+	tween.tween_property(label, "modulate:a", 0.0, 0.4).set_delay(0.45)
 	tween.chain().tween_callback(label.queue_free)
 
 

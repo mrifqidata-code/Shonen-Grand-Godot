@@ -21,18 +21,21 @@ if (-not (Test-Path $Godot)) {
 
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
-Write-Host "== Import resources ==" -ForegroundColor Cyan
-& $Godot --headless --path $projectDir --import | Out-Null
+# Avoid a stale APK surviving a failed/partial export.
+Remove-Item $apkPath -Force -ErrorAction SilentlyContinue
 
 $exportFlag = if ($Mode -eq "release") { "--export-release" } else { "--export-debug" }
+$apkName = "shonen_grand_$Mode.apk"
 
-Write-Host "== Export $Mode APK ==" -ForegroundColor Cyan
-$log = & $Godot --headless --path $projectDir $exportFlag "Android" $apkPath 2>&1
-$log | Where-Object { $_ -match "ERROR|WARNING|error|failed" } | Select-Object -First 20
+$exportProc = Start-Process -FilePath $Godot -ArgumentList @("--headless", "--verbose", $exportFlag, "Android", "builds\$apkName") -WorkingDirectory $projectDir -Wait -PassThru
+$exportProc.WaitForExit()
+$exitCode = $exportProc.ExitCode
+Write-Host "Godot exit code: $exitCode" -ForegroundColor DarkGray
 
+$log = Get-Content "$env:TEMP\godot_export.log" -ErrorAction SilentlyContinue
 if (-not (Test-Path $apkPath)) {
     Write-Host "BUILD FAILED - no APK produced" -ForegroundColor Red
-    $log | Select-Object -Last 30
+    if ($log) { $log | Select-Object -Last 30 }
     exit 1
 }
 
