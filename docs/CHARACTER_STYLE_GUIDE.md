@@ -55,7 +55,8 @@ Di HP 1080 × 1920 semuanya diperbesar **1,5×**.
 
 `CharacterView` mengunci skala pixel art ke bilangan bulat (`floor(box / 64)`),
 jadi sprite 64 px selalu digambar 64 px (1×) atau 128 px (2×) — tidak pernah 1,5×.
-Saat ini: **kartu hero 128 px (2×)**, **baris tim & musuh di Battle 64 px (1×)**.
+Saat ini: **kartu hero 128 px (2×)**, **arena Battle 128 px (2×) untuk tim ≤ 5 unit
+dan 64 px (1×) untuk tim 6 unit** agar enam hero tetap muat satu baris.
 Kalau nanti bikin layout baru, beri kotak avatar kelipatan 64 (64, 128, 192)
 supaya tetap tajam.
 
@@ -109,11 +110,23 @@ Langkah:
 
 ## 5. Animasi per gaya
 
+Animasi **sudah aktif** untuk semua gaya sebagai frame prosedural dari portrait
+(lihat [ANIMATION_GUIDE.md](ANIMATION_GUIDE.md)):
+
+| Clip | Frame | FPS | Loop |
+|------|-------|-----|------|
+| `idle` | 4 | 4 | ✅ |
+| `attack` | 6 | 14 | ❌ |
+| `hurt` | 3 | 12 | ❌ |
+| `victory` | 4 | 6 | ❌ |
+
+Rencana saat art Canva asli masuk (per gaya):
+
 | Gaya | Metode animasi | Frame per aksi | Catatan |
 |------|----------------|----------------|---------|
 | `px16` | AnimatedSprite2D sprite sheet | 3–4 | Murah, tapi wajah tidak terbaca |
 | `px32` | AnimatedSprite2D sprite sheet | 4–6 | Klasik, butuh pixel-perfect scaling |
-| `px64` | AnimatedSprite2D sprite sheet | 6–8 | Paling seimbang untuk pixel |
+| `px64` | AnimatedSprite2D sprite sheet | 6–8 | Paling seimbang untuk pixel (target utama) |
 | `chibi128` | AnimatedSprite2D (sheet) atau tween/bone | 8–12 | Cocok untuk idle "napas" + attack |
 | `hd256` | Bone/skeletal (mis. Skeleton2D) atau Live2D-style | — | Paling fleksibel, file terbesar |
 

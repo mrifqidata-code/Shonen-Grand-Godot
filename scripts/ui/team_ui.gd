@@ -87,7 +87,7 @@ func refresh_ui():
         info_vbox.add_child(name_label)
         
         var sub = Label.new()
-        sub.text = "%s • %s" % [hero["hero_class"], Faction.get_name(hero["faction"])]
+        sub.text = "%s • %s" % [hero["hero_class"], Faction.display_name(hero["faction"])]
         sub.add_theme_font_size_override("font_size", 10)
         sub.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
         info_vbox.add_child(sub)

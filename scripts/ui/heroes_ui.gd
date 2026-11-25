@@ -66,7 +66,7 @@ func create_hero_card(hero: Dictionary) -> PanelContainer:
 
     # Info
     var info = Label.new()
-    var faction_name = Faction.get_name(hero["faction"])
+    var faction_name = Faction.display_name(hero["faction"])
     info.text = "%s • %s • %s" % [hero["anime_origin"], hero["hero_class"], faction_name]
     info.add_theme_font_size_override("font_size", 11)
     info.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))

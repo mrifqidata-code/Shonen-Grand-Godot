@@ -12,6 +12,15 @@ class_name CharacterSpriteFactory
 
 const DEFAULT_STYLE := "px64"
 
+# Animation clips shared by CharacterView and the battle playback.
+# Frames are generated from the static portrait, so no art export is needed.
+const ANIMS := {
+    "idle": {"frames": 4, "fps": 4.0, "loop": true},
+    "attack": {"frames": 6, "fps": 14.0, "loop": false},
+    "hurt": {"frames": 3, "fps": 12.0, "loop": false},
+    "victory": {"frames": 4, "fps": 6.0, "loop": false},
+}
+
 static var _cache: Dictionary = {}
 
 static var _palettes: Dictionary = {
@@ -272,6 +281,190 @@ static func make_image(style_id: String, origin: String = "Default") -> Image:
 
     img.blend_rect(fig, Rect2i(Vector2i.ZERO, Vector2i(n, n)), Vector2i.ZERO)
     return img
+
+
+static func make_anim_texture(style_id: String, origin: String, anim: String, frame: int) -> Texture2D:
+    var key := "%s|%s|%s|%d" % [style_id, origin, anim, frame]
+    if _cache.has(key):
+        return _cache[key]
+    var img := make_anim_image(style_id, origin, anim, frame)
+    if img == null:
+        return null
+    var tex := ImageTexture.create_from_image(img)
+    _cache[key] = tex
+    return tex
+
+
+static func make_anim_image(style_id: String, origin: String, anim: String, frame: int) -> Image:
+    var base := make_image(style_id, origin)
+    if base == null:
+        return null
+    var style := get_style(style_id)
+    var aa := bool(style["antialias"])
+    var accent: Color = _palette_for(origin)["accent"]
+    var count := int(ANIMS.get(anim, ANIMS["idle"])["frames"])
+    frame = clampi(frame, 0, count - 1)
+
+    match anim:
+        "attack":
+            return _attack_frame(base, frame, aa, accent)
+        "hurt":
+            return _hurt_frame(base, frame, aa)
+        "victory":
+            return _victory_frame(base, frame, aa, accent)
+        _:
+            return _idle_frame(base, frame)
+
+
+static func _step_for(n: int) -> float:
+    # Pixel sizes differ (16, 32, 64, 128, 256); keep motion proportional.
+    return maxf(1.0, roundf(float(n) / 64.0))
+
+
+static func _blank(n: int) -> Image:
+    return Image.create_empty(n, n, false, Image.FORMAT_RGBA8)
+
+
+static func _shift(img: Image, dx: int, dy: int) -> Image:
+    var n := img.get_width()
+    var out := _blank(n)
+    var w := n - absi(dx)
+    var h := n - absi(dy)
+    if w <= 0 or h <= 0:
+        return out
+    var src := Rect2i(maxi(0, -dx), maxi(0, -dy), w, h)
+    var dst := Vector2i(maxi(0, dx), maxi(0, dy))
+    out.blit_rect(img.get_region(src), Rect2i(Vector2i.ZERO, Vector2i(w, h)), dst)
+    return out
+
+
+static func _flash(img: Image, amount: float) -> Image:
+    var out: Image = img.duplicate()
+    for y in range(out.get_height()):
+        for x in range(out.get_width()):
+            var c := out.get_pixel(x, y)
+            if c.a <= 0.01:
+                continue
+            out.set_pixel(
+                x,
+                y,
+                Color(
+                    lerpf(c.r, 1.0, amount),
+                    lerpf(c.g, 1.0, amount),
+                    lerpf(c.b, 1.0, amount),
+                    c.a
+                )
+            )
+    return out
+
+
+static func _tint(img: Image, tint: Color, amount: float) -> Image:
+    var out: Image = img.duplicate()
+    for y in range(out.get_height()):
+        for x in range(out.get_width()):
+            var c := out.get_pixel(x, y)
+            if c.a <= 0.01:
+                continue
+            out.set_pixel(
+                x,
+                y,
+                Color(lerpf(c.r, tint.r, amount), lerpf(c.g, tint.g, amount), lerpf(c.b, tint.b, amount), c.a)
+            )
+    return out
+
+
+static func _idle_frame(base: Image, frame: int) -> Image:
+    var n := base.get_width()
+    var step := _step_for(n)
+    var bob := [0.0, -1.0, -1.0, 0.0]
+    var dy := int(bob[frame % bob.size()] * step)
+    return _shift(base, 0, dy)
+
+
+static func _attack_frame(base: Image, frame: int, aa: bool, accent: Color) -> Image:
+    var n := base.get_width()
+    var step := _step_for(n)
+    # wind-up -> lunge -> strike -> recover
+    var offsets := [
+        Vector2(-1, 0),
+        Vector2(-2, 0),
+        Vector2(3, -1),
+        Vector2(5, -1),
+        Vector2(2, 0),
+        Vector2(0, 0),
+    ]
+    var off: Vector2 = offsets[frame]
+    var out := _shift(base, int(off.x * step), int(off.y * step))
+
+    if frame == 1:
+        out = _flash(out, 0.20)
+    if frame >= 2 and frame <= 4:
+        # motion trails behind the fighter
+        for i in range(3):
+            var y := n * (0.42 + i * 0.09)
+            _rrect(
+                out,
+                Rect2(n * 0.03, y, n * 0.20, maxf(1.0, n * 0.018)),
+                0.0,
+                Color(1.0, 1.0, 1.0, 0.42),
+                aa
+            )
+        # slash swoosh grows then fades
+        var progress: float = [0.45, 1.0, 0.7][frame - 2]
+        _slash(out, progress, accent, aa)
+    return out
+
+
+static func _slash(img: Image, progress: float, accent: Color, aa: bool) -> void:
+    var n := img.get_width()
+    var steps := 26
+    var center := Vector2(n * 0.55, n * 0.45)
+    var radius := n * 0.42
+    for i in range(steps):
+        var u := float(i) / float(steps - 1)
+        if u > progress:
+            break
+        var angle := lerpf(-1.25, 0.85, u)
+        var pos := center + Vector2(cos(angle), sin(angle)) * radius
+        var r := n * 0.046 * (1.0 - 0.35 * u)
+        var col := accent.lerp(Color(1, 1, 1), 0.6)
+        col.a = 0.9 * (1.0 - 0.3 * u)
+        _circle(img, pos, r, col, aa)
+        _circle(img, pos, r * 0.45, Color(1, 1, 1, 0.95), aa)
+
+
+static func _hurt_frame(base: Image, frame: int, aa: bool) -> Image:
+    var n := base.get_width()
+    var step := _step_for(n)
+    var out := base
+    if frame == 0:
+        out = _flash(base, 0.28)
+    elif frame == 1:
+        out = _shift(base, int(-2 * step), 0)
+    else:
+        out = _shift(base, int(step), 0)
+    return _tint(out, Color(1.0, 0.42, 0.42), 0.28)
+
+
+static func _victory_frame(base: Image, frame: int, aa: bool, accent: Color) -> Image:
+    var n := base.get_width()
+    var step := _step_for(n)
+    var hops := [0.0, -2.0, -3.0, -1.0]
+    var out := _shift(base, 0, int(hops[frame] * step))
+
+    var sparkles := [
+        [Vector2(0.16, 0.26), 0.055],
+        [Vector2(0.84, 0.36), 0.060],
+        [Vector2(0.24, 0.74), 0.045],
+        [Vector2(0.78, 0.70), 0.050],
+    ]
+    for i in range(mini(frame + 1, sparkles.size())):
+        var pos: Vector2 = sparkles[i][0] * n
+        var r: float = sparkles[i][1] * n
+        _circle(out, pos, r, Color(accent.r, accent.g, accent.b, 0.55), aa)
+        _circle(out, pos, r * 0.65, Color(1.0, 0.98, 0.82, 0.85), aa)
+        _circle(out, pos, r * 0.3, Color(1, 1, 1, 0.95), aa)
+    return out
 
 
 static func _palette_for(origin: String) -> Dictionary:

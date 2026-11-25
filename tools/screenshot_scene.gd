@@ -10,6 +10,8 @@ extends SceneTree
 var _scene_path := "res://scenes/ui/character_style.tscn"
 var _out_path := "res://screenshots/screenshot.png"
 var _call := ""
+var _args: Array = []
+var _wait := 1.2
 
 
 func _initialize() -> void:
@@ -20,6 +22,11 @@ func _initialize() -> void:
             _out_path = arg.trim_prefix("--out=")
         elif arg.begins_with("--call="):
             _call = arg.trim_prefix("--call=")
+        elif arg.begins_with("--args="):
+            for part in arg.trim_prefix("--args=").split(",", false):
+                _args.append(part.to_int() if part.is_valid_int() else part)
+        elif arg.begins_with("--wait="):
+            _wait = maxf(0.2, arg.trim_prefix("--wait=").to_float())
 
     var packed: PackedScene = load(_scene_path)
     if packed == null:
@@ -34,12 +41,12 @@ func _initialize() -> void:
         call_timer.one_shot = true
         call_timer.wait_time = 0.6
         call_timer.autostart = true
-        call_timer.timeout.connect(func(): instance.call(_call))
+        call_timer.timeout.connect(func(): instance.callv(_call, _args))
         root.add_child(call_timer)
 
     var timer := Timer.new()
     timer.one_shot = true
-    timer.wait_time = 1.2
+    timer.wait_time = _wait
     timer.autostart = true
     timer.timeout.connect(_capture)
     root.add_child(timer)

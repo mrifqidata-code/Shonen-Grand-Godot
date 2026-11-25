@@ -1,34 +1,49 @@
 # scripts/ui/character_view.gd
-# Reusable character avatar.
+# Reusable character avatar with optional idle/attack/hurt/victory animation.
 #
 # Draws a character preview using the currently selected display style.
 # If real art exists at res://assets/sprites/heroes/<origin>/<style_id>.png
 # it is used instead of the procedural placeholder, so swapping in Canva art
-# later needs no code change.
+# later needs no code change (custom art is shown as a single still frame).
 @tool
 class_name CharacterView
 extends Control
 
 const Factory := preload("res://scripts/services/character_sprite_factory.gd")
 
-@export var style_id: String = "chibi128":
+@export var style_id: String = "px64":
     set(value):
-        if style_id == value and _texture != null:
+        if style_id == value:
             return
         style_id = value
-        _texture = null
+        _custom_texture = null
         _apply_filter()
         queue_redraw()
 
 @export var anime_origin: String = "Naruto":
     set(value):
-        if anime_origin == value and _texture != null:
+        if anime_origin == value:
             return
         anime_origin = value
-        _texture = null
+        _custom_texture = null
         queue_redraw()
 
-var _texture: Texture2D = null
+## Loop the idle clip. Leave off for static previews (cards, lists).
+@export var animate_idle: bool = false:
+    set(value):
+        animate_idle = value
+        if is_inside_tree():
+            set_process(value or _anim != "idle")
+
+## Enemies face left, the player team faces right.
+@export var flip_h: bool = false:
+    set(value):
+        flip_h = value
+        queue_redraw()
+
+var _custom_texture: Texture2D = null
+var _anim := "idle"
+var _anim_elapsed := 0.0
 
 
 func _ready() -> void:
@@ -36,6 +51,19 @@ func _ready() -> void:
         custom_minimum_size = Vector2(64, 64)
     mouse_filter = Control.MOUSE_FILTER_IGNORE
     _apply_filter()
+    set_process(animate_idle)
+    queue_redraw()
+
+
+func _process(delta: float) -> void:
+    var def: Dictionary = Factory.ANIMS.get(_anim, Factory.ANIMS["idle"])
+    _anim_elapsed += delta
+    var total := float(def["frames"]) / float(def["fps"])
+    if not bool(def["loop"]) and _anim_elapsed >= total:
+        _anim = "idle"
+        _anim_elapsed = 0.0
+        if not animate_idle:
+            set_process(false)
     queue_redraw()
 
 
@@ -53,15 +81,36 @@ func set_character(origin: String, style: String = "") -> void:
         style_id = style
 
 
+## One-shot clip: "attack", "hurt" or "victory". Returns to idle automatically.
+func play(anim: String) -> void:
+    if not Factory.ANIMS.has(anim):
+        return
+    _anim = anim
+    _anim_elapsed = 0.0
+    set_process(true)
+    queue_redraw()
+
+
+func current_anim() -> String:
+    return _anim
+
+
+func _frame_index() -> int:
+    var def: Dictionary = Factory.ANIMS.get(_anim, Factory.ANIMS["idle"])
+    var frames := int(def["frames"])
+    var idx := int(_anim_elapsed * float(def["fps"]))
+    if bool(def["loop"]):
+        return idx % frames
+    return mini(idx, frames - 1)
+
+
 func _resolve_texture() -> Texture2D:
-    if _texture != null:
-        return _texture
     var custom_path := "res://assets/sprites/heroes/%s/%s.png" % [anime_origin, style_id]
     if ResourceLoader.exists(custom_path):
-        _texture = load(custom_path)
-        return _texture
-    _texture = Factory.make_texture(style_id, anime_origin)
-    return _texture
+        if _custom_texture == null:
+            _custom_texture = load(custom_path)
+        return _custom_texture
+    return Factory.make_anim_texture(style_id, anime_origin, _anim, _frame_index())
 
 
 func _draw() -> void:
@@ -83,4 +132,8 @@ func _draw() -> void:
 
     var draw_size := tex_size * render_scale
     var rect := Rect2((size - draw_size) * 0.5, draw_size)
+    if flip_h:
+        draw_set_transform(Vector2(size.x, 0.0), 0.0, Vector2(-1.0, 1.0))
     draw_texture_rect(tex, rect, false)
+    if flip_h:
+        draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

@@ -58,7 +58,10 @@ static func get_crit_bonus(attacker: int, defender: int) -> float:
         return -0.1  # -10% crit
     return 0.0
 
-static func get_name(faction: int) -> String:
+# Note: must not be called get_name() — that clashes with Object.get_name().
+static func display_name(faction: int) -> String:
+    if not FACTION_DATA.has(faction):
+        return "Unknown"
     return FACTION_DATA[faction]["name"]
 
 static func get_color(faction: int) -> Color:

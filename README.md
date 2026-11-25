@@ -23,7 +23,7 @@ shonen-grand-godot/
 │   ├── services/    # Canva client, sprite factory, asset importer
 │   └── ui/          # UI controllers (termasuk CharacterView)
 ├── tools/           # Script headless: render sample gaya, screenshot scene
-├── docs/            # Panduan (lihat CHARACTER_STYLE_GUIDE.md)
+├── docs/            # Panduan gaya karakter & animasi
 └── resources/       # Themes, hero data
 ```
 
@@ -45,6 +45,10 @@ shonen-grand-godot/
 - ✅ 5 opsi gaya tampilan karakter (pixel 16/32/64, chibi HD 128, anime HD 256)
   → lihat [docs/CHARACTER_STYLE_GUIDE.md](docs/CHARACTER_STYLE_GUIDE.md)
 - ✅ Preview karakter di kartu hero, tim, dan battle (CharacterView)
+- ✅ Animasi idle / attack / hurt / victory (4–6 frame, prosedural)
+  → lihat [docs/ANIMATION_GUIDE.md](docs/ANIMATION_GUIDE.md)
+- ✅ Battle playback: HP bar per unit, angka damage melayang, crit, skip
+- ✅ Starter hero otomatis + hero hasil summon langsung masuk slot tim
 
 ## 📱 Export ke Android
 1. Project → Export → Add → Android
