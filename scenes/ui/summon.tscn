@@ -43,6 +43,40 @@ layout_mode = 2
 text = "← Menu"
 name = "BackBtn"
 
+[node name="Tabs" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TabHero" type="Button" parent="VBox/Tabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Hero"
+name = "TabHero"
+
+[node name="TabFriendship" type="Button" parent="VBox/Tabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Friendship"
+name = "TabFriendship"
+
+[node name="TabAdvanced" type="Button" parent="VBox/Tabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Advanced"
+name = "TabAdvanced"
+
+[node name="TabRace" type="Button" parent="VBox/Tabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Race"
+name = "TabRace"
+
+[node name="FactionRow" type="HBoxContainer" parent="VBox"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+name = "FactionRow"
+
 [node name="Banner" type="PanelContainer" parent="VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 230)

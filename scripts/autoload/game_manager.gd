@@ -8,6 +8,10 @@ var progress: Dictionary = {
     "gold": 5000,
     "diamonds": 100,
     "tickets": 30,
+    "friendship_points": 100,
+    "advanced_scrolls": 3,
+    "noble_insignia": 0,
+    "hero_shards": 0,
     "idle_accumulated_at": 0,
     "current_campaign_stage": 1,
     "tower_floor": 1,
@@ -30,9 +34,25 @@ const STARTER_HERO_IDS = ["naruto_uzumaki", "luffy_monkey", "ichigo_kurosaki"]
 
 func _ready():
     load_game()
+    _ensure_progress_keys()
     if progress["idle_accumulated_at"] == 0:
         progress["idle_accumulated_at"] = Time.get_unix_time_from_system()
         progress["last_login"] = Time.get_unix_time_from_system()
+
+func _ensure_progress_keys():
+    var defaults := {
+        "friendship_points": 100,
+        "advanced_scrolls": 3,
+        "noble_insignia": 0,
+        "hero_shards": 0,
+    }
+    var changed := false
+    for key in defaults:
+        if not progress.has(key):
+            progress[key] = defaults[key]
+            changed = true
+    if changed:
+        save_game()
 
 func init_new_game():
     progress = {
@@ -41,6 +61,10 @@ func init_new_game():
         "gold": 5000,
         "diamonds": 100,
         "tickets": 30,
+        "friendship_points": 100,
+        "advanced_scrolls": 3,
+        "noble_insignia": 0,
+        "hero_shards": 0,
         "idle_accumulated_at": Time.get_unix_time_from_system(),
         "current_campaign_stage": 1,
         "tower_floor": 1,
@@ -205,6 +229,16 @@ func spend_tickets(amount: int) -> bool:
         save_game()
         return true
     return false
+
+func spend_progress(key: String, amount: int) -> bool:
+    if int(progress.get(key, 0)) >= amount:
+        progress[key] = int(progress.get(key, 0)) - amount
+        save_game()
+        return true
+    return false
+
+func add_progress(key: String, amount: int):
+    progress[key] = int(progress.get(key, 0)) + amount
 
 func get_team() -> Dictionary:
     if teams.size() > 0:

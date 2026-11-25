@@ -1,6 +1,6 @@
 # scripts/ui/summon_ui.gd
-# Hero Summon screen styled like a gacha banner: rate-up showcase, ticket count,
-# x1/x10 buttons and a result grid with rarity-coloured hero cards.
+# Summon hub with four banners (Hero / Friendship / Advanced / Race), each with
+# its own currency, pool and pity. Mirrors the summon split used by idle RPGs.
 extends Control
 
 const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
@@ -14,6 +14,16 @@ const RARITY_COLORS := {
 }
 const GOLD := Color("d8b24a")
 const GOLD_DIM := Color("8a6f1a")
+const PITY_MAX := 100
+
+# key = progress field, per = cost per single pull
+const BANNERS := [
+	{"id": "hero", "label": "Hero", "key": "tickets", "per": 1, "icon": "🎫", "unit": "ticket"},
+	{"id": "friendship", "label": "Friendship", "key": "friendship_points", "per": 10, "icon": "🤝", "unit": "poin"},
+	{"id": "advanced", "label": "Advanced", "key": "advanced_scrolls", "per": 1, "icon": "📜", "unit": "scroll"},
+	{"id": "race", "label": "Race", "key": "diamonds", "per": 100, "icon": "💎", "unit": "diamond"},
+]
+const FACTIONS := ["Lightforged", "Arcane", "Kindred", "Demonhunt", "Void"]
 
 @onready var ticket_label: Label = $VBox/TicketPanel/HBox/TicketLabel
 @onready var summon1_btn: Button = $VBox/SummonRow/Summon1Btn
@@ -27,8 +37,12 @@ const GOLD_DIM := Color("8a6f1a")
 @onready var result_card: VBoxContainer = $ResultPanel/VBox/ResultCard
 @onready var result_grid: GridContainer = $ResultPanel/VBox/ResultGrid
 @onready var ok_btn: Button = $ResultPanel/VBox/OkBtn
+@onready var faction_row: HBoxContainer = $VBox/FactionRow
 
 var _featured_hero_id := ""
+var _tab := 0
+var _faction := 0
+var _tab_buttons: Array = []
 
 
 func _ready() -> void:
@@ -39,13 +53,76 @@ func _ready() -> void:
 	result_panel.add_theme_stylebox_override(
 		"panel", _style(Color(0.08, 0.07, 0.15, 0.98), GOLD, 2, 12)
 	)
+	_build_tabs()
+	_build_factions()
 	_build_banner()
 	_build_featured()
-	update_ticket_label()
+	_set_tab(0)
 
 
-func update_ticket_label() -> void:
-	ticket_label.text = "%d ticket" % int(GameManager.progress["tickets"])
+func _build_tabs() -> void:
+	var tabs: HBoxContainer = $VBox/Tabs
+	for i in range(BANNERS.size()):
+		var btn: Button = tabs.get_node("Tab" + str(BANNERS[i]["label"]))
+		_tab_buttons.append(btn)
+		btn.pressed.connect(_set_tab.bind(i))
+
+
+func _build_factions() -> void:
+	for i in range(FACTIONS.size()):
+		var btn := Button.new()
+		btn.text = FACTIONS[i]
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.add_theme_font_size_override("font_size", 11)
+		btn.pressed.connect(_select_faction.bind(i))
+		faction_row.add_child(btn)
+
+
+func _set_tab(index: int) -> void:
+	_tab = index
+	for i in range(_tab_buttons.size()):
+		var btn: Button = _tab_buttons[i]
+		var active := i == index
+		btn.add_theme_stylebox_override(
+			"normal",
+			_style(Color(0.18, 0.14, 0.08, 0.98) if active else Color(0.08, 0.08, 0.15, 0.9), GOLD if active else GOLD_DIM, 2, 8)
+		)
+		btn.add_theme_color_override("font_color", Color(1, 0.9, 0.6) if active else Color(0.8, 0.82, 0.9))
+	faction_row.visible = index == 3
+	var banner: Dictionary = BANNERS[index]
+	status_label.text = "Pity: %d/%d · %s x%d = %d %s" % [
+		int(GameManager.progress.get("noble_insignia", 0)),
+		PITY_MAX,
+		banner["icon"],
+		int(banner["per"]),
+		int(banner["per"]),
+		banner["unit"],
+	]
+	status_label.add_theme_color_override("font_color", Color(0.65, 0.68, 0.78))
+	_update_prices()
+	_build_featured()
+
+
+func _select_faction(index: int) -> void:
+	_faction = index
+	for i in range(faction_row.get_child_count()):
+		var btn: Button = faction_row.get_child(i)
+		btn.add_theme_stylebox_override(
+			"normal",
+			_style(Color(0.18, 0.12, 0.24, 0.98), GOLD, 2, 8) if i == index else _style(Color(0.08, 0.08, 0.15, 0.9), GOLD_DIM, 1, 8)
+		)
+	_build_featured()
+
+
+func _update_prices() -> void:
+	var banner: Dictionary = BANNERS[_tab]
+	var amount := int(GameManager.progress.get(str(banner["key"]), 0))
+	ticket_label.text = "%s %d %s" % [banner["icon"], amount, banner["unit"]]
+	var per := int(banner["per"])
+	summon1_btn.text = "Summon ×1\n%s %d" % [banner["icon"], per]
+	summon10_btn.text = "Summon ×10\n%s %d" % [banner["icon"], per * 10]
+	summon10_btn.disabled = amount < per * 10
+	summon1_btn.disabled = amount < per
 
 
 func _build_banner() -> void:
@@ -72,12 +149,25 @@ func _build_banner() -> void:
 	banner_art.add_child(view)
 
 
+func _pool() -> Array:
+	var all := HeroesData.get_all_templates()
+	match _tab:
+		1:
+			return all.filter(func(t): return str(t["rarity"]) in ["SSR", "SSR+"])
+		2:
+			return all.filter(func(t): return str(t["rarity"]) in ["SSR+", "UR", "UR+", "EX"])
+		3:
+			return all.filter(func(t): return int(t["faction"]) == _faction)
+		_:
+			return all
+
+
 func _build_featured() -> void:
 	for child in featured_grid.get_children():
 		child.queue_free()
 	var order := ["EX", "UR+", "UR", "SSR+", "SSR"]
-	var all := HeroesData.get_all_templates()
-	all.sort_custom(func(a, b):
+	var heroes := _pool()
+	heroes.sort_custom(func(a, b):
 		var ia := order.find(str(a["rarity"]))
 		var ib := order.find(str(b["rarity"]))
 		if ia == -1:
@@ -86,7 +176,7 @@ func _build_featured() -> void:
 			ib = 99
 		return ia < ib
 	)
-	for t in all:
+	for t in heroes:
 		featured_grid.add_child(_hero_card(t, 64))
 
 
@@ -94,6 +184,7 @@ func _hero_card(template: Dictionary, sprite_px: int) -> PanelContainer:
 	var rarity := str(template["rarity"])
 	var color: Color = RARITY_COLORS.get(rarity, Color.WHITE)
 	var card := PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.add_theme_stylebox_override("panel", _style(Color(0.07, 0.07, 0.14, 0.95), color, 2, 8))
 
 	var box := VBoxContainer.new()
@@ -129,34 +220,65 @@ func _hero_card(template: Dictionary, sprite_px: int) -> PanelContainer:
 
 
 func _on_summon(count: int) -> void:
-	if int(GameManager.progress["tickets"]) < count:
-		status_label.text = "🎫 Ticket tidak cukup (%d/%d). Klaim Idle Reward dulu di City." % [
-			int(GameManager.progress["tickets"]), count
+	var banner: Dictionary = BANNERS[_tab]
+	var key := str(banner["key"])
+	var per := int(banner["per"])
+	var total_cost := per * count
+	if int(GameManager.progress.get(key, 0)) < total_cost:
+		status_label.text = "%s tidak cukup (%d/%d). Klaim Idle Reward / battle dulu." % [
+			banner["icon"], int(GameManager.progress.get(key, 0)), total_cost
 		]
 		status_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.4))
 		return
 
+	var pool := _pool()
+	if pool.is_empty():
+		status_label.text = "Pool kosong untuk pilihan ini."
+		return
+
 	var pulled_heroes := []
-	var templates := HeroesData.get_all_templates()
 	for i in range(count):
-		if not GameManager.spend_tickets(1):
+		if not GameManager.spend_progress(key, per):
 			break
-		var template = templates[randi() % templates.size()]
+		var use_pity := int(GameManager.progress.get("noble_insignia", 0)) >= PITY_MAX
+		var template: Dictionary
+		if use_pity:
+			var premium := pool.filter(func(t): return str(t["rarity"]) in ["SSR+", "UR", "UR+", "EX"])
+			template = premium[randi() % premium.size()] if not premium.is_empty() else pool[randi() % pool.size()]
+			GameManager.progress["noble_insignia"] = int(GameManager.progress.get("noble_insignia", 0)) - PITY_MAX
+		else:
+			template = pool[randi() % pool.size()]
+		GameManager.add_progress("noble_insignia", 1)
 		var hero = HeroesData.create_hero_from_template(template)
 		GameManager.add_hero(hero)
 		pulled_heroes.append(hero)
+		# Duplicate protection: extra copies become shards.
+		if _owns_template(str(template["id"]), hero["id"]):
+			GameManager.add_progress("hero_shards", 10)
 
+	GameManager.save_game()
 	if pulled_heroes.is_empty():
+		_update_prices()
 		return
 
 	_show_results(pulled_heroes)
 	var best := _best_rarity(pulled_heroes)
 	var color: Color = RARITY_COLORS.get(best, Color.WHITE)
-	status_label.text = "✨ %d hero didapat · terbaik: %s · Tim: %d/6" % [
-		pulled_heroes.size(), best, GameManager.get_team_hero_count()
+	status_label.text = "✨ %s ×%d · terbaik: %s · Pity %d/%d · Tim %d/6" % [
+		banner["label"], pulled_heroes.size(), best,
+		int(GameManager.progress.get("noble_insignia", 0)), PITY_MAX,
+		GameManager.get_team_hero_count(),
 	]
 	status_label.add_theme_color_override("font_color", color)
-	update_ticket_label()
+	_update_prices()
+
+
+func _owns_template(template_id: String, new_hero_id: String) -> bool:
+	var count := 0
+	for hero in GameManager.heroes:
+		if str(hero.get("template_id", "")) == template_id and str(hero.get("id", "")) != new_hero_id:
+			count += 1
+	return count > 0
 
 
 func _show_results(heroes: Array) -> void:

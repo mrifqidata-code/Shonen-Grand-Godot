@@ -49,6 +49,8 @@ shonen-grand-godot/
   → lihat [docs/ANIMATION_GUIDE.md](docs/ANIMATION_GUIDE.md)
 - ✅ Battle playback: HP bar per unit, angka damage melayang, crit, skip
 - ✅ Starter hero otomatis + hero hasil summon langsung masuk slot tim
+- ✅ 4 jenis summon: Hero (ticket), Friendship (poin), Advanced (scroll), Race (diamond + faction) + pity Noble Insignia
+  → analisis sistem Twilight Chronicle: [docs/TWILIGHT_CHRONICLE_REA.md](docs/TWILIGHT_CHRONICLE_REA.md)
 - ✅ Art per-hero dari Canva + importer batch (`tools/import_canva_art.ps1`)
 - ✅ Art prosedural unik untuk 15 hero (warna + aksesori, tanpa file gambar)
 - ✅ Build satu perintah: `tools/ship.ps1` / double-click `BUILD_APK.cmd`
