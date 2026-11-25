@@ -24,6 +24,9 @@ var teams: Array = []
 # PvE entry point used by the battle scene (set by the PvE hub).
 var pending_pve_mode: String = "campaign"
 
+# Which secondary menu the reusable submenu scene should render.
+var pending_menu: String = "growth"
+
 # Player preferences (art style, toggles). Not reset by init_new_game().
 var settings: Dictionary = {
     "character_style": "px64",

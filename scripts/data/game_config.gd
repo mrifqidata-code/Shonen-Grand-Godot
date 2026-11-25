@@ -178,6 +178,148 @@ static func pve_gold_mult(mode_id: String) -> float:
 	return float(pve_mode(mode_id).get("gold_mult", 1.0))
 
 
+# ------------------------------------------------------------------ menus ---
+# Twilight-style secondary screens. The reusable submenu scene renders
+# `title` + `entries`; each entry may jump to another screen via `goto`.
+const SUBMENUS := {
+	"growth": {
+		"title": "📈 Growth",
+		"subtitle": "Cabang peningkatan global",
+		"entries": [
+			{"icon": "⭐", "name": "Grade & Awaken", "desc": "Naikkan tier hero", "goto": "heroes"},
+			{"icon": "🔮", "name": "Relic", "desc": "Artefak boost stat", "goto": "menu:relic"},
+			{"icon": "🐾", "name": "Pet / Beast", "desc": "Pet pendamping", "goto": "menu:pet"},
+			{"icon": "🔷", "name": "Glyph & Rune", "desc": "Ukiran & rune", "goto": "menu:relic"},
+			{"icon": "🌳", "name": "Tech Tree", "desc": "Riset permanen", "goto": "menu:relic"},
+		],
+	},
+	"contest": {
+		"title": "⚔️ Contest",
+		"subtitle": "PvP & peringkat",
+		"entries": [
+			{"icon": "🏟️", "name": "Arena", "desc": "Tantang tim lain", "goto": "menu:arena"},
+			{"icon": "🏆", "name": "Ranking", "desc": "Papan peringkat", "goto": "menu:ranking"},
+			{"icon": "🎖️", "name": "Glory Shop", "desc": "Tukar poin kehormatan", "goto": "store"},
+			{"icon": "🌙", "name": "Night Arena", "desc": "Arena malam", "goto": "menu:arena"},
+		],
+	},
+	"guild": {
+		"title": "🏰 Alliance",
+		"subtitle": "Guild & kerja sama",
+		"entries": [
+			{"icon": "🐲", "name": "Guild Boss", "desc": "Serang boss bersama", "goto": "battle"},
+			{"icon": "🤺", "name": "Guild Duel", "desc": "Duel antar guild", "goto": "battle"},
+			{"icon": "⛰️", "name": "Guild Peak", "desc": "Pendakian guild", "goto": "menu:guild"},
+			{"icon": "👥", "name": "Members", "desc": "Daftar anggota", "goto": "menu:friends"},
+			{"icon": "🛒", "name": "Guild Shop", "desc": "Beli dengan poin guild", "goto": "store"},
+		],
+	},
+	"adventure": {
+		"title": "🧭 Adventure",
+		"subtitle": "Mode ekspedisi",
+		"entries": [
+			{"icon": "🗼", "name": "Monster Tower", "desc": "Naik terus", "goto": "pve"},
+			{"icon": "🌀", "name": "Maze", "desc": "Labirin stage", "goto": "pve"},
+			{"icon": "⛰️", "name": "Mountain Trial", "desc": "Ujian gunung", "goto": "pve"},
+			{"icon": "🗺️", "name": "Adventure Map", "desc": "Ekspedisi peta", "goto": "pve"},
+			{"icon": "🌌", "name": "Astral Spirit", "desc": "Stage astral", "goto": "pve"},
+		],
+	},
+	"mail": {
+		"title": "✉️ Mail",
+		"subtitle": "Kotak masuk",
+		"entries": [
+			{"icon": "🎁", "name": "Reward Mail", "desc": "Klaim hadiah", "action": "daily"},
+			{"icon": "📢", "name": "Announcements", "desc": "Pengumuman", "goto": "menu:mail"},
+			{"icon": "🛡️", "name": "System Mail", "desc": "Pesan sistem", "goto": "menu:mail"},
+		],
+	},
+	"friends": {
+		"title": "👥 Friends",
+		"subtitle": "Teman & sosial",
+		"entries": [
+			{"icon": "🤝", "name": "Friend List", "desc": "Daftar teman", "goto": "menu:friends"},
+			{"icon": "➕", "name": "Add Friend", "desc": "Cari teman", "goto": "menu:friends"},
+			{"icon": "🎫", "name": "Friendship Summon", "desc": "Pakai poin teman", "goto": "summon"},
+			{"icon": "💬", "name": "Chat", "desc": "Obrolan", "goto": "menu:friends"},
+		],
+	},
+	"ranking": {
+		"title": "🏆 Rankings",
+		"subtitle": "Papan peringkat",
+		"entries": [
+			{"icon": "⚔️", "name": "Power", "desc": "Kekuatan tim", "goto": "menu:ranking"},
+			{"icon": "🗼", "name": "Tower", "desc": "Lantai tertinggi", "goto": "menu:ranking"},
+			{"icon": "🏟️", "name": "Arena", "desc": "Peringkat arena", "goto": "menu:arena"},
+			{"icon": "📊", "name": "Level", "desc": "Level pemain", "goto": "menu:ranking"},
+		],
+	},
+	"dailies": {
+		"title": "📅 Dailies",
+		"subtitle": "Misi harian & mingguan",
+		"entries": [
+			{"icon": "🎁", "name": "Sign-in Reward", "desc": "Login harian", "action": "daily"},
+			{"icon": "✅", "name": "Daily Missions", "desc": "Misi harian", "goto": "menu:dailies"},
+			{"icon": "🗓️", "name": "Weekly", "desc": "Misi mingguan", "goto": "menu:dailies"},
+			{"icon": "🏅", "name": "Achievements", "desc": "Pencapaian", "goto": "menu:dailies"},
+		],
+	},
+	"events": {
+		"title": "🎉 Events",
+		"subtitle": "Event terbatas",
+		"entries": [
+			{"icon": "🎡", "name": "Carnival", "desc": "Event karnaval", "goto": "menu:events"},
+			{"icon": "🎰", "name": "Lucky Turntable", "desc": "Putar hadiah", "goto": "summon"},
+			{"icon": "🌳", "name": "Wish Tree", "desc": "Pohon harapan", "goto": "menu:events"},
+			{"icon": "🌑", "name": "Blood Moon", "desc": "Event bulan darah", "goto": "menu:events"},
+		],
+	},
+	"pet": {
+		"title": "🐾 Pet / Beast",
+		"subtitle": "Pendamping tim",
+		"entries": [
+			{"icon": "🐾", "name": "Pet List", "desc": "Pet yang dimiliki", "goto": "menu:pet"},
+			{"icon": "🎰", "name": "Summon Pet", "desc": "Dapatkan pet", "goto": "summon"},
+			{"icon": "⬆️", "name": "Pet Level", "desc": "Naikkan level pet", "goto": "menu:pet"},
+		],
+	},
+	"relic": {
+		"title": "🔮 Relic & Tech",
+		"subtitle": "Boost global",
+		"entries": [
+			{"icon": "🔮", "name": "Relics", "desc": "Artefak", "goto": "menu:relic"},
+			{"icon": "🔱", "name": "Holy Seal", "desc": "Segel suci", "goto": "menu:relic"},
+			{"icon": "🌊", "name": "Resonance", "desc": "Resonansi", "goto": "menu:relic"},
+			{"icon": "🌳", "name": "Tech Tree", "desc": "Riset", "goto": "menu:relic"},
+		],
+	},
+	"arena": {
+		"title": "🏟️ Arena",
+		"subtitle": "PvP asinkron",
+		"entries": [
+			{"icon": "⚔️", "name": "Ranked", "desc": "Bertarung naik peringkat", "goto": "battle"},
+			{"icon": "🛡️", "name": "Defense", "desc": "Atur tim bertahan", "goto": "team"},
+			{"icon": "🎖️", "name": "Glory Shop", "desc": "Tukar poin", "goto": "store"},
+		],
+	},
+	"vip": {
+		"title": "💠 VIP & Paket",
+		"subtitle": "Keuntungan & pembelian",
+		"entries": [
+			{"icon": "💠", "name": "VIP Privileges", "desc": "Keuntungan VIP", "goto": "menu:vip"},
+			{"icon": "🗓️", "name": "Month Card", "desc": "Kartu bulanan", "goto": "menu:vip"},
+			{"icon": "📈", "name": "Growth Fund", "desc": "Dana pertumbuhan", "goto": "menu:vip"},
+			{"icon": "🎁", "name": "Bundles", "desc": "Paket spesial", "goto": "store"},
+			{"icon": "⭐", "name": "First Charge", "desc": "Bonus pertama", "goto": "menu:vip"},
+		],
+	},
+}
+
+
+static func submenu(menu_id: String) -> Dictionary:
+	return SUBMENUS.get(menu_id, {})
+
+
 static func level_cap(limit_break: int) -> int:
 	var idx := clampi(limit_break, 0, LEVEL_CAPS.size() - 1)
 	return int(LEVEL_CAPS[idx])

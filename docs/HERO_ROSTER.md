@@ -65,6 +65,8 @@ Fubuki (Control/Arcane) · Nobara (Assassin/Demonhunt) · Tanjiro
 - Skill per class (active + ultimate + passive) dengan nama ber-prefix hero,
   mis. `Sukuna: Overdrive`.
 - Starter: Naruto Shippuden, Rukia, Zoro.
-- Art prosedural per-anime (Naruto, One Piece, Bleach, Jujutsu Kaisen, One Punch
-  Man, Dragon Ball, Attack on Titan, Demon Slayer). Detail unik per hero
-  (desain) menyusul di tahap akhir.
+- Art prosedural **per-hero final**: setiap dari 64 hero punya warna rambut,
+  kostum, aksen, gaya rambut (spiky/short/bob/swoop/slick/curly/bald) dan
+  aksesori sendiri (headband, topi jerami, mask, blindfold, kacamata, katana,
+  cape, aura, cyborg, bare-chest). Tabel: `_design` di
+  `scripts/services/character_sprite_factory.gd`.

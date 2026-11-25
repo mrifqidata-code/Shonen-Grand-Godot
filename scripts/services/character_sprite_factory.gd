@@ -245,7 +245,107 @@ static var _hero_styles: Dictionary = {
 }
 
 
+# Per-hero final design table (all 64 roster heroes). Row format:
+#   [hair, outfit, accent, hair_style, [accessories], skin(opt), eye(opt)]
+# outfit_dark and cape_color are derived automatically.
+static var _design: Dictionary = {
+    # === EX ===
+    "sukuna": ["e88fa8", "2a1a24", "e03a3a", "spiky", ["face_marks", "bare", "aura"], "e8c3a0", "e03a3a"],
+    "hashirama": ["3a2a1c", "8c2f2f", "4e9a52", "swoop", ["headband", "aura"]],
+    "naruto_six_path": ["f2c53d", "f28c28", "2d5be3", "spiky", ["headband", "aura"]],
+    "yhwach": ["1c1c24", "2a1a2e", "c4453f", "slick", ["cape"], "e8c9a8", "c4453f"],
+    "ichigo_final": ["f28b2c", "14141a", "5aa9ff", "spiky", ["sword", "high_collar", "aura"]],
+    "blast": ["3a3f4c", "2a3550", "6fd3ff", "slick", ["cape", "aura"]],
+    "kaido": ["2a2a33", "4a3a2a", "c4453f", "spiky", ["bare", "aura"], "d9a066"],
+    "goku": ["1d1d24", "f08a24", "3a7bff", "spiky", ["aura"], "e8b184"],
+    # === UR ===
+    "kaguya": ["e8e8f0", "4a3a5e", "d9b3ff", "swoop", ["aura"]],
+    "sasuke_indra": ["1c1c26", "2a2a3a", "8a2be2", "spiky", ["high_collar", "aura"], "", "e03a3a"],
+    "aizen_final": ["4a3524", "14141c", "f2f2f6", "slick", ["glasses", "cape", "aura"]],
+    "gojo": ["eef0f7", "1d2233", "6fd3ff", "spiky", ["blindfold", "aura"]],
+    "luffy_gear5": ["f0f0f0", "f2f2f6", "d33b3b", "spiky", ["aura"], "f0c39c"],
+    "garou_cosmic": ["e8e8ee", "2a2a33", "c4453f", "spiky", ["aura"]],
+    "saitama_serious": ["f0c39c", "f4d13c", "d63a3a", "bald", ["cape"]],
+    "urahara": ["e8d9a0", "1a2a2a", "4e9a52", "short", ["high_collar"]],
+    # === SSR+ core ===
+    "itachi": ["1c1c26", "2a2a3a", "c4453f", "swoop", ["cape"], "", "e03a3a"],
+    "tsunade": ["e8d9a0", "4e9a52", "f2d15b", "bob", ["face_marks"]],
+    "minato": ["f2c53d", "2a4a8c", "f2d15b", "spiky", ["cape", "headband"]],
+    "obito": ["1c1c26", "2a2a33", "e08a2a", "spiky", ["mask", "cape"]],
+    "madara": ["1c1c26", "3a2a3a", "c4453f", "spiky", ["bare", "cape"], "", "e03a3a"],
+    "byakuya": ["1c1c26", "14141c", "f2b0c8", "slick", ["cape"]],
+    "ulquiorra": ["1c1c26", "f2f2f6", "4e9a52", "slick", ["face_marks"]],
+    "ichigo": ["f28b2c", "14141a", "5aa9ff", "spiky", ["sword"]],
+    "zoro": ["4e9a52", "2f5f3a", "e8e8ee", "short", ["sword", "headband"]],
+    "law": ["1c1c26", "2a3a4a", "6fd3ff", "short", ["high_collar"], "e8c9a8"],
+    "blackbeard": ["1c1c26", "2a1a1a", "c4453f", "spiky", ["bare", "cape"], "8a5a3a"],
+    "mihawk": ["1c1c26", "2a1a24", "e8d9a0", "slick", ["sword", "cape"]],
+    "genos": ["f2c53d", "1a1a20", "f28b2c", "spiky", ["cyborg"], "b9bfcc", "f2b13c"],
+    "yamamoto": ["e8c9a8", "14141c", "c4453f", "bald", ["cape"]],
+    "yuta": ["1c1c26", "232a40", "c4453f", "swoop", ["sword"]],
+    "levi": ["1c1c26", "5c6b3a", "d8d2c0", "short", ["cape"], "e7c09a"],
+    # === SSR+ ===
+    "jiraiya": ["e8e8f0", "c4453f", "4e9a52", "spiky", ["headband"]],
+    "gaara": ["c4453f", "2a1a24", "d9b3ff", "spiky", ["aura"], "e8c9a8"],
+    "pain": ["f28b2c", "2a2a33", "6f4fbf", "spiky", ["face_marks", "cape"], "", "8a7bff"],
+    "starrk": ["3a3a44", "2a2a33", "4e9a52", "short", ["high_collar"]],
+    "grimmjow": ["4aa0d9", "f2f2f6", "6fd3ff", "spiky", ["face_marks"]],
+    "sanji": ["f2d15b", "1b1b22", "3a6bd6", "swoop", ["high_collar"]],
+    "big_mom": ["f2a0c0", "e8722c", "f2d15b", "curly", ["cape"], "e8c9a8"],
+    "bang": ["e8c9a8", "3a3a44", "e8e8ee", "bald", ["high_collar"]],
+    # === SSR ===
+    "naruto_shippuden": ["f2c53d", "f28c28", "2d5be3", "spiky", ["headband"]],
+    "kakashi": ["c9ccd6", "3c5a3a", "2b3445", "spiky", ["mask", "headband"]],
+    "might_guy": ["1c1c26", "4e9a52", "c4453f", "short", ["headband"]],
+    "toshiro": ["e8e8f0", "14141c", "6fd3ff", "short", ["sword"]],
+    "renji": ["c4453f", "14141c", "c4453f", "spiky", ["headband"]],
+    "unohana": ["1c1c26", "14141c", "4e9a52", "bob", ["sword"]],
+    "ace": ["1c1c26", "e8722c", "f2d15b", "short", ["bare"]],
+    "megumi": ["1c1c26", "232a40", "6f4fbf", "spiky", ["aura"]],
+    # === SR ===
+    "neji": ["3a2a1c", "c9b88a", "6f4fbf", "swoop", ["headband"], "", "e8e8f0"],
+    "rock_lee": ["1c1c26", "3fa06b", "c4453f", "bob", ["headband"]],
+    "shikamaru": ["1c1c26", "3a5a3a", "c9b88a", "slick", ["headband"]],
+    "rukia": ["1b1b24", "16161c", "9c7bff", "bob", ["sword"]],
+    "chad": ["1c1c26", "2a2a33", "c4453f", "short", ["bare"], "8a5a3a"],
+    "usopp": ["1c1c26", "8a6a2a", "f2d15b", "curly", ["headband"], "8a5a3a"],
+    "franky": ["3a7bff", "c4453f", "f2d15b", "spiky", ["cyborg"], "e8b184"],
+    "yuji": ["f2a0b4", "232a40", "d94b4b", "short", []],
+    # === R ===
+    "sakura": ["f2a0b4", "c4453f", "4e9a52", "bob", ["headband"]],
+    "hinata": ["2a2a5a", "e8e8f0", "8a7bff", "bob", ["headband"], "", "e8e8f0"],
+    "uryu": ["1c1c26", "f2f2f6", "3a6bd6", "slick", ["glasses"]],
+    "chopper": ["8a5a3a", "c4453f", "f2d15b", "short", ["straw_hat"], "8a5a3a"],
+    "king": ["1c1c26", "2a2a33", "c4453f", "spiky", ["headband"], "8a5a3a"],
+    "fubuki": ["4fbf7a", "1b1f2a", "6ff2b0", "bob", ["aura"]],
+    "nobara": ["f2a0b4", "23272e", "d94b4b", "short", ["face_marks"]],
+    "tanjiro": ["7a2530", "23272e", "3fa06b", "short", ["face_marks"]],
+}
+
+
 static func _hero_cfg(hero_id: String) -> Dictionary:
+    if _design.has(hero_id):
+        var d: Array = _design[hero_id]
+        var outfit := Color(str(d[1]))
+        var accent := Color(str(d[2]))
+        var accs: Array = d[4] if d.size() > 4 else []
+        var cfg := {
+            "hair": Color(str(d[0])),
+            "outfit": outfit,
+            "outfit_dark": outfit.darkened(0.38),
+            "accent": accent,
+            "hair_style": str(d[3]) if d.size() > 3 else "spiky",
+            "accessories": accs,
+        }
+        if d.size() > 5 and not str(d[5]).is_empty():
+            cfg["skin"] = Color(str(d[5]))
+        if d.size() > 6 and not str(d[6]).is_empty():
+            cfg["eye"] = Color(str(d[6]))
+        if accs.has("cape"):
+            cfg["cape_color"] = accent
+        if accs.has("bare"):
+            cfg["bare_chest"] = true
+        return cfg
     if _hero_styles.has(hero_id):
         return _hero_styles[hero_id]
     return {}

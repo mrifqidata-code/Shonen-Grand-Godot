@@ -19,6 +19,7 @@ const SCENES := {
 	"bag": "res://scenes/ui/inventory.tscn",
 	"store": "res://scenes/ui/store.tscn",
 	"pve": "res://scenes/ui/pve.tscn",
+	"submenu": "res://scenes/ui/submenu.tscn",
 	"style": "res://scenes/ui/character_style.tscn",
 	"canva": "res://scenes/ui/canva_generator.tscn",
 	"home": "res://scenes/main.tscn",
@@ -38,6 +39,10 @@ func _ready() -> void:
 
 
 func _go(key: String) -> void:
+	if key.begins_with("menu:"):
+		GameManager.pending_menu = key.substr(5)
+		SceneManager.change_scene(SCENES["submenu"])
+		return
 	SceneManager.change_scene(SCENES.get(key, SCENES["home"]))
 
 
@@ -165,8 +170,8 @@ func _build_feature_grid(w: float, h: float) -> void:
 		["🗼", "Tower", "pve"],
 		["🎭", "Style", "style"],
 		["🎨", "Canva", "canva"],
-		["🏆", "Ranking", "heroes"],
-		["📅", "Dailies", "store"],
+		["🏆", "Ranking", "menu:ranking"],
+		["📅", "Dailies", "menu:dailies"],
 	]
 	var cols := 5
 	var cell_w := w / float(cols)
@@ -298,15 +303,15 @@ func _build_team_row(w: float, h: float) -> void:
 func _build_rails(w: float, h: float) -> void:
 	var left := [
 		["📖", "Guide", "style"],
-		["🏆", "Ranking", "heroes"],
-		["👥", "Friends", "team"],
-		["✉️", "Mail", "bag"],
+		["🏆", "Ranking", "menu:ranking"],
+		["👥", "Friends", "menu:friends"],
+		["✉️", "Mail", "menu:mail"],
 	]
 	var right := [
 		["👁", "Preview", "style"],
 		["📜", "Quest", "pve"],
 		["🎒", "Bag", "bag"],
-		["📅", "Dailies", "store"],
+		["📅", "Dailies", "menu:dailies"],
 	]
 	_rail(left, 4.0, h * 0.40)
 	_rail(right, w - 4.0 - 78.0, h * 0.40)
@@ -345,11 +350,11 @@ func _build_bottom_nav(w: float, h: float) -> void:
 	var tabs := [
 		["🏰", "City", "home"],
 		["🐣", "Hero", "heroes"],
-		["📈", "Growth", "team"],
+		["📈", "Growth", "menu:growth"],
 		["⚔️", "Campaign", "battle"],
-		["🎰", "Summon", "summon"],
-		["🎭", "Contest", "style"],
-		["⋯", "More", "bag"],
+		["🧭", "Adventure", "pve"],
+		["🎭", "Contest", "menu:contest"],
+		["🏰", "Alliance", "menu:guild"],
 	]
 	for tab in tabs:
 		var b := Button.new()

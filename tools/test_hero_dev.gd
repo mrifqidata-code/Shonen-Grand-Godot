@@ -14,8 +14,17 @@ func _ready() -> void:
 
 	var hero: Dictionary = GameManager.heroes[0]
 	var id := str(hero["id"])
-	var hp0 := BattleEngine.player_max_hp(hero)
-	var power0 := GameManager.hero_power(hero)
+	# Reset progression so the test is idempotent across runs.
+	for i in range(GameManager.heroes.size()):
+		if GameManager.heroes[i]["id"] == id:
+			GameManager.heroes[i]["grade"] = 0
+			GameManager.heroes[i]["awaken"] = 0
+			GameManager.heroes[i]["level"] = 1
+			GameManager.heroes[i]["limit_break"] = 0
+	GameManager.save_game()
+	var hero2 := GameManager.get_hero_by_id(id)
+	var hp0 := BattleEngine.player_max_hp(hero2)
+	var power0 := GameManager.hero_power(hero2)
 
 	GameManager.progress["gold"] = 10000000
 	GameManager.progress["hero_shards"] = 100000
@@ -40,9 +49,9 @@ func _ready() -> void:
 		push_error("awaken count mismatch")
 		failed = true
 
-	var hero2: Dictionary = GameManager.get_hero_by_id(id)
-	var hp1 := BattleEngine.player_max_hp(hero2)
-	var power1 := GameManager.hero_power(hero2)
+	var hero3 = GameManager.get_hero_by_id(id)
+	var hp1 := BattleEngine.player_max_hp(hero3)
+	var power1 := GameManager.hero_power(hero3)
 	print("power %d -> %d, battle hp %d -> %d" % [power0, power1, hp0, hp1])
 	if power1 <= power0 or hp1 <= hp0:
 		push_error("grade/awaken did not raise stats")
