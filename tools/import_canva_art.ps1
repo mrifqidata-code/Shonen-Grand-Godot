@@ -14,7 +14,7 @@
 # Per-hero art wins over per-anime art, which wins over the procedural sprite.
 param(
     [string]$Source = "",
-    [ValidateSet("px16", "px32", "px64", "chibi128", "hd256")]
+    [ValidateSet("px16", "px32", "px64", "chibi128", "hd256", "cutin")]
     [string]$Style = "px64",
     [switch]$NoResize
 )
@@ -27,8 +27,8 @@ if ([string]::IsNullOrWhiteSpace($Source)) {
     $Source = Join-Path $projectDir "art_inbox"
 }
 
-$styleNative = @{ px16 = 16; px32 = 32; px64 = 64; chibi128 = 128; hd256 = 256 }
-$styleIds = @("px16", "px32", "px64", "chibi128", "hd256")
+$styleNative = @{ px16 = 16; px32 = 32; px64 = 64; chibi128 = 128; hd256 = 256; cutin = 512 }
+$styleIds = @("px16", "px32", "px64", "chibi128", "hd256", "cutin")
 
 function Normalize-Key([string]$value) {
     return ($value.ToLower() -replace '[\s_\-]', '')
@@ -87,7 +87,7 @@ foreach ($file in $files) {
     $fileStyle = $Style
 
     # optional _px64 / _chibi128 suffix
-    $styleMatch = [regex]::Match($stem, '[ _\-]?(px16|px32|px64|chibi128|hd256)$', 'IgnoreCase')
+    $styleMatch = [regex]::Match($stem, '[ _\-]?(px16|px32|px64|chibi128|hd256|cutin)$', 'IgnoreCase')
     if ($styleMatch.Success) {
         $fileStyle = $styleMatch.Groups[1].Value.ToLower()
         $stem = $stem.Substring(0, $stem.Length - $styleMatch.Length)

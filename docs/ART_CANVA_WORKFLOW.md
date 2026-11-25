@@ -65,6 +65,7 @@ thick outline, flat colors, centered, transparent background,
 | Pixel aktif (default) | 512 × 512 | `naruto_uzumaki.png` |
 | Chibi HD | 512 × 512 | `naruto_uzumaki_chibi128.png` |
 | Anime HD | 512 × 512 | `naruto_uzumaki_hd256.png` |
+| **Ultimate cut-in** | 1024 × 1024 | `naruto_uzumaki_cutin.png` |
 
 Kalau satu anime cukup satu art (misal semua ninja pakai model sama), taruh di
 folder anime: `art_inbox/Naruto/px64.png`.

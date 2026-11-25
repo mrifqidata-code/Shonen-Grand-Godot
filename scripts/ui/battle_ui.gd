@@ -4,6 +4,7 @@
 extends Control
 
 const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
+const CutinBackdropScript := preload("res://scripts/ui/cutin_backdrop.gd")
 
 const ITEM_NAMES := {"exp_potion": "EXP Potion", "hero_shard": "Hero Shard"}
 
@@ -389,6 +390,15 @@ func _play_cut_in(actor: Dictionary, event: Dictionary) -> void:
 	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(layer)
 
+	# Illustrated backdrop (Canva art if available, otherwise procedural).
+	var backdrop := CutinBackdropScript.new()
+	backdrop.hero_id = "" if enemy else HeroesData.template_id_of(hero)
+	backdrop.anime_origin = str(hero.get("anime_origin", "Enemy" if enemy else "Default"))
+	backdrop.enemy = enemy
+	backdrop.accent = accent
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(backdrop)
+
 	var dim := ColorRect.new()
 	dim.color = Color(0.02, 0.02, 0.06, 0.0)
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -452,7 +462,7 @@ func _play_cut_in(actor: Dictionary, event: Dictionary) -> void:
 
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(dim, "color:a", 0.74, 0.12)
+	tween.tween_property(dim, "color:a", 0.40, 0.12)
 	tween.tween_property(view, "position:x", screen.x * 0.08, 0.20)
 	tween.tween_property(caption, "position:x", screen.x * 0.44, 0.22)
 	tween.tween_property(name_label, "position:x", screen.x * 0.44, 0.22)

@@ -47,7 +47,7 @@ powershell -ExecutionPolicy Bypass -File tools\build_android.ps1
 |---|---|---|
 | `px64` (aktif) | 64 × 64 | 128 px di kartu & arena |
 | `chibi128` | 128 × 128 | 96–128 px |
-| `hd256` | 256 × 256 | 128–256 px |
+<|message|> `hd256` | 256 × 256 | 128–256 px |
 
 Ekspor dari Canva boleh lebih besar (512/1024 px) — importer akan mengecilkan.
 Jangan mengekspor lebih kecil dari ukuran native, hasilnya pecah.
