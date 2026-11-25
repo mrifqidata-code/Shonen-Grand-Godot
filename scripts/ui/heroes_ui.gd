@@ -26,6 +26,8 @@ const GOLD := Color("d8b24a")
 @onready var upgrade_btn: Button = $DetailPanel/VBox/DetailButtons/UpgradeBtn
 @onready var star_btn: Button = $DetailPanel/VBox/DetailButtons/StarBtn
 @onready var limit_btn: Button = $DetailPanel/VBox/DetailButtons/LimitBtn
+@onready var grade_btn: Button = $DetailPanel/VBox/DetailButtons2/GradeBtn
+@onready var awaken_btn: Button = $DetailPanel/VBox/DetailButtons2/AwakenBtn
 @onready var close_btn: Button = $DetailPanel/VBox/CloseBtn
 
 var _sort_mode := 0  # 0 rarity, 1 level, 2 name
@@ -39,6 +41,8 @@ func _ready() -> void:
 	upgrade_btn.pressed.connect(_on_upgrade_pressed)
 	star_btn.pressed.connect(_on_star_pressed)
 	limit_btn.pressed.connect(_on_limit_pressed)
+	grade_btn.pressed.connect(_on_grade_pressed)
+	awaken_btn.pressed.connect(_on_awaken_pressed)
 	_style_detail_panel()
 	refresh_heroes()
 
@@ -129,6 +133,9 @@ func _hero_card(hero: Dictionary) -> PanelContainer:
 
 	var stars := Label.new()
 	stars.text = "★".repeat(int(hero.get("star_level", 1))) + "  Lv.%d" % int(hero.get("level", 1))
+	stars.text += "  G%d" % (int(hero.get("grade", 0)) + 1)
+	if int(hero.get("awaken", 0)) > 0:
+		stars.text += " A%d" % int(hero.get("awaken", 0))
 	stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	stars.add_theme_font_size_override("font_size", 10)
 	stars.add_theme_color_override("font_color", GOLD)
@@ -190,15 +197,19 @@ func _open_detail(hero_id: String) -> void:
 		rarity, hero.get("hero_class", "-"), hero.get("anime_origin", "-"), faction_name
 	]
 	var cap := GameManager.hero_level_cap(hero)
-	detail_stats.text = "★ %d · Lv.%d/%d · LB%d\nHP %d · ATK %d · DEF %d\nShard tukar LB: %d" % [
+	var grade := int(hero.get("grade", 0))
+	var awaken := int(hero.get("awaken", 0))
+	detail_stats.text = "★ %d · Lv.%d/%d · LB%d · G%d · A%d\nHP %d · ATK %d · DEF %d · Power %d" % [
 		int(hero.get("star_level", 1)),
 		int(hero.get("level", 1)),
 		cap,
 		int(hero.get("limit_break", 0)),
+		grade + 1,
+		awaken,
 		int(hero.get("base_hp", 0)),
 		int(hero.get("base_atk", 0)),
 		int(hero.get("base_def", 0)),
-		GameManager.limit_break_cost(hero),
+		GameManager.hero_power(hero),
 	]
 	var maxed: bool = int(hero.get("level", 1)) >= cap
 	upgrade_btn.text = "Level MAX" if maxed else "Upgrade (%dg)" % (int(hero.get("level", 1)) * 50)
@@ -206,6 +217,32 @@ func _open_detail(hero_id: String) -> void:
 	var lb_maxed: bool = int(hero.get("limit_break", 0)) >= GameConfig.MAX_LIMIT_BREAK
 	limit_btn.text = "Limit MAX" if lb_maxed else "Limit Break (%d💠)" % GameManager.limit_break_cost(hero)
 	limit_btn.disabled = lb_maxed or int(GameManager.progress.get("hero_shards", 0)) < GameManager.limit_break_cost(hero)
+
+	# Grade: 7 tiers from HeroGradeCfg. Awaken unlocks once grade is maxed.
+	var grade_maxed: bool = grade >= GameConfig.GRADE_COUNT - 1
+	if grade_maxed:
+		grade_btn.text = "Grade MAX"
+		grade_btn.disabled = true
+	else:
+		var gcost := GameConfig.grade_cost(grade)
+		grade_btn.text = "Grade →G%d\n%dg + %d💠" % [grade + 2, int(gcost["gold"]), int(gcost["hero_shards"])]
+		grade_btn.disabled = (
+			int(GameManager.progress.get("gold", 0)) < int(gcost["gold"])
+			or int(GameManager.progress.get("hero_shards", 0)) < int(gcost["hero_shards"])
+		)
+	if awaken >= GameConfig.AWAKEN_MAX:
+		awaken_btn.text = "Awaken MAX"
+		awaken_btn.disabled = true
+	elif not grade_maxed:
+		awaken_btn.text = "Awaken (G%d dulu)" % GameConfig.GRADE_COUNT
+		awaken_btn.disabled = true
+	else:
+		var acost := GameConfig.awaken_cost(awaken)
+		awaken_btn.text = "Awaken →A%d\n%d💫 + %d🔮" % [awaken + 1, int(acost["courage_essence"]), int(acost["soul_crystal"])]
+		awaken_btn.disabled = (
+			int(GameManager.progress.get("courage_essence", 0)) < int(acost["courage_essence"])
+			or int(GameManager.progress.get("soul_crystal", 0)) < int(acost["soul_crystal"])
+		)
 	detail_panel.visible = true
 
 
@@ -214,6 +251,22 @@ func open_first_hero() -> void:
 	if GameManager.heroes.is_empty():
 		return
 	_open_detail(str(GameManager.heroes[0]["id"]))
+
+
+func _on_grade_pressed() -> void:
+	if _selected_id.is_empty():
+		return
+	if GameManager.grade_hero(_selected_id):
+		refresh_heroes()
+		_open_detail(_selected_id)
+
+
+func _on_awaken_pressed() -> void:
+	if _selected_id.is_empty():
+		return
+	if GameManager.awaken_hero(_selected_id):
+		refresh_heroes()
+		_open_detail(_selected_id)
 
 
 func _on_limit_pressed() -> void:

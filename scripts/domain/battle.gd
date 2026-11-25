@@ -24,6 +24,11 @@ static func ultimate_of(hero: Dictionary) -> Dictionary:
     return {"name": ENEMY_ULT_NAME, "desc": "", "mult": ENEMY_ULT_MULT}
 
 
+static func hero_stat_mult(hero: Dictionary) -> float:
+    # Grade + Awaken flat stat tiers (see GameConfig).
+    return GameConfig.grade_mult(int(hero.get("grade", 0))) * GameConfig.awaken_mult(int(hero.get("awaken", 0)))
+
+
 static func calculate_damage(attacker: Dictionary, defender: Dictionary, skill_mult: float = 1.0) -> Dictionary:
     var faction_adv = Faction.get_advantage(attacker["faction"], defender["faction"])
     var faction_crit = Faction.get_crit_bonus(attacker["faction"], defender["faction"])
@@ -31,7 +36,7 @@ static func calculate_damage(attacker: Dictionary, defender: Dictionary, skill_m
     var crit_rate = min(1.0, attacker["base_crit_rate"] + faction_crit)
     var is_crit = randf() < crit_rate
     
-    var damage = attacker["base_atk"] * skill_mult * faction_adv
+    var damage = attacker["base_atk"] * skill_mult * faction_adv * hero_stat_mult(attacker)
     damage = damage * (100.0 / (100.0 + defender["base_def"]))
     
     if is_crit:
@@ -44,7 +49,7 @@ static func calculate_damage(attacker: Dictionary, defender: Dictionary, skill_m
 
 static func player_max_hp(hero: Dictionary) -> int:
     return int(
-        float(hero["base_hp"]) * (1.0 + float(hero["star_level"]) * 0.2) * (1.0 + float(hero["limit_break"]) * 0.1)
+        float(hero["base_hp"]) * (1.0 + float(hero["star_level"]) * 0.2) * (1.0 + float(hero["limit_break"]) * 0.1) * hero_stat_mult(hero)
     )
 
 
@@ -177,9 +182,14 @@ static func _battle_result(
 ) -> Dictionary:
     var rewards: Dictionary
     if winner == "player":
-        rewards = {"gold": 100 + rounds * 10, "exp": 50 + rounds * 5, "items": ["exp_potion", "hero_shard"]}
+        rewards = {
+            "gold": 100 + rounds * 10,
+            "exp": 50 + rounds * 5,
+            "items": ["exp_potion", "hero_shard"],
+            "materials": {"courage_essence": 3 + int(rounds / 5)},
+        }
     else:
-        rewards = {"gold": 20 + rounds * 5, "exp": 10 + rounds * 2, "items": []}
+        rewards = {"gold": 20 + rounds * 5, "exp": 10 + rounds * 2, "items": [], "materials": {}}
     return {
         "winner": winner,
         "rounds": rounds,

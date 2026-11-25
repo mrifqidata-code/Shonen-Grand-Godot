@@ -295,6 +295,8 @@ static func create_hero_from_template(template: Dictionary) -> Dictionary:
         "star_level": 1,
         "level": 1,
         "limit_break": 0,
+        "grade": 0,
+        "awaken": 0,
         "awakened": false,
         "copies": 0,
         "skills": template["skills"].duplicate(true),

@@ -82,6 +82,8 @@ const STORE_GOODS := {
 		{"icon": "🎫", "name": "Ticket ×5", "cost_key": "diamonds", "cost": 300, "grant": {"tickets": 5}},
 		{"icon": "📜", "name": "Advanced Scroll ×5", "cost_key": "diamonds", "cost": 500, "grant": {"advanced_scrolls": 5}},
 		{"icon": "💠", "name": "Hero Shard ×50", "cost_key": "diamonds", "cost": 800, "grant": {"hero_shards": 50}},
+		{"icon": "💫", "name": "Courage Essence ×20", "cost_key": "diamonds", "cost": 300, "grant": {"courage_essence": 20}},
+		{"icon": "🔮", "name": "Soul Crystal ×10", "cost_key": "diamonds", "cost": 600, "grant": {"soul_crystal": 10}},
 		{"icon": "🤝", "name": "Friendship ×1000", "cost_key": "diamonds", "cost": 400, "grant": {"friendship_points": 1000}},
 	],
 	"exchange": [
@@ -103,6 +105,32 @@ static func store_tab_label(tab: String) -> String:
 		"diamond": return "💎 Diamond"
 		"exchange": return "🔁 Exchange"
 		_: return tab
+
+
+# --------------------------------------------------- hero grade / awaken ---
+# HeroGradeCfg exposes 7 grade tiers; HeroAwakenCfg is the follow-up branch.
+# Grade raises base stats on a flat curve and spends hero shards + gold, awaken
+# spends the rare materials (courage essence / soul crystal) for a smaller bump.
+const GRADE_COUNT := 7
+const AWAKEN_MAX := 5
+const GRADE_STEP := 0.08   # +8% base stats per grade
+const AWAKEN_STEP := 0.05  # +5% per awaken level
+
+
+static func grade_mult(grade: int) -> float:
+	return 1.0 + float(grade) * GRADE_STEP
+
+
+static func awaken_mult(awaken: int) -> float:
+	return 1.0 + float(awaken) * AWAKEN_STEP
+
+
+static func grade_cost(grade: int) -> Dictionary:
+	return {"gold": 3000 + grade * 2000, "hero_shards": 10 + grade * 10}
+
+
+static func awaken_cost(awaken: int) -> Dictionary:
+	return {"courage_essence": 20 + awaken * 20, "soul_crystal": 5 + awaken * 5}
 
 
 static func level_cap(limit_break: int) -> int:

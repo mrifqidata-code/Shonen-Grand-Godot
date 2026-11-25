@@ -73,12 +73,61 @@ func claim_daily() -> bool:
     save_game()
     return true
 
+func grade_hero(hero_id: String) -> bool:
+    var hero = get_hero_by_id(hero_id)
+    if hero.is_empty():
+        return false
+    var grade := int(hero.get("grade", 0))
+    if grade >= GameConfig.GRADE_COUNT - 1:
+        return false
+    var cost := GameConfig.grade_cost(grade)
+    for key in cost:
+        if int(progress.get(key, 0)) < int(cost[key]):
+            return false
+    for key in cost:
+        progress[key] = int(progress.get(key, 0)) - int(cost[key])
+    for i in range(heroes.size()):
+        if heroes[i]["id"] == hero_id:
+            heroes[i]["grade"] = grade + 1
+            break
+    save_game()
+    return true
+
+func awaken_hero(hero_id: String) -> bool:
+    var hero = get_hero_by_id(hero_id)
+    if hero.is_empty():
+        return false
+    var awaken := int(hero.get("awaken", 0))
+    if awaken >= GameConfig.AWAKEN_MAX:
+        return false
+    if int(hero.get("grade", 0)) < GameConfig.GRADE_COUNT - 1:
+        return false
+    var cost := GameConfig.awaken_cost(awaken)
+    for key in cost:
+        if int(progress.get(key, 0)) < int(cost[key]):
+            return false
+    for key in cost:
+        progress[key] = int(progress.get(key, 0)) - int(cost[key])
+    for i in range(heroes.size()):
+        if heroes[i]["id"] == hero_id:
+            heroes[i]["awaken"] = awaken + 1
+            break
+    save_game()
+    return true
+
+func hero_power(hero: Dictionary) -> int:
+    var mult := GameConfig.grade_mult(int(hero.get("grade", 0))) * GameConfig.awaken_mult(int(hero.get("awaken", 0)))
+    var base := float(hero.get("base_hp", 0)) + float(hero.get("base_atk", 0)) * 5.0 + float(hero.get("base_def", 0)) * 3.0
+    return int(base * mult)
+
 func _ensure_progress_keys():
     var defaults := {
         "friendship_points": 100,
         "advanced_scrolls": 3,
         "noble_insignia": 0,
         "hero_shards": 0,
+        "courage_essence": 100,
+        "soul_crystal": 30,
     }
     var changed := false
     for key in defaults:
@@ -99,6 +148,8 @@ func init_new_game():
         "advanced_scrolls": 3,
         "noble_insignia": 0,
         "hero_shards": 0,
+        "courage_essence": 100,
+        "soul_crystal": 30,
         "idle_accumulated_at": Time.get_unix_time_from_system(),
         "current_campaign_stage": 1,
         "tower_floor": 1,

@@ -54,6 +54,7 @@ shonen-grand-godot/
 - ✅ Mekanisme selaras datamine (bobot rarity 89/8,5/2,5%, pity 100, jaminan 10×, cap level bertingkat, formasi 2 baris)
   → [docs/TWILIGHT_DATAMINE_MECHANICS.md](docs/TWILIGHT_DATAMINE_MECHANICS.md)
 - ✅ Store (Gold/Diamond/Exchange) + Daily reward + Bag daftar resource
+- ✅ Hero Grade (7 tier) + Awaken (5 level) + Limit Break, memengaruhi stat & battle
 - ✅ Art per-hero dari Canva + importer batch (`tools/import_canva_art.ps1`)
 - ✅ Art prosedural unik untuk 15 hero (warna + aksesori, tanpa file gambar)
 - ✅ Build satu perintah: `tools/ship.ps1` / double-click `BUILD_APK.cmd`

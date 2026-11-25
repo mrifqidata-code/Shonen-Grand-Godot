@@ -131,6 +131,23 @@ size_flags_horizontal = 3
 text = "Limit Break"
 name = "LimitBtn"
 
+[node name="DetailButtons2" type="HBoxContainer" parent="DetailPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+name = "DetailButtons2"
+
+[node name="GradeBtn" type="Button" parent="DetailPanel/VBox/DetailButtons2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Grade"
+name = "GradeBtn"
+
+[node name="AwakenBtn" type="Button" parent="DetailPanel/VBox/DetailButtons2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Awaken"
+name = "AwakenBtn"
+
 [node name="CloseBtn" type="Button" parent="DetailPanel/VBox"]
 layout_mode = 2
 text = "Tutup"

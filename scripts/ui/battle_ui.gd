@@ -6,7 +6,7 @@ extends Control
 const CharacterViewScript := preload("res://scripts/ui/character_view.gd")
 const CutinBackdropScript := preload("res://scripts/ui/cutin_backdrop.gd")
 
-const ITEM_NAMES := {"exp_potion": "EXP Potion", "hero_shard": "Hero Shard"}
+const ITEM_NAMES := {"exp_potion": "EXP Potion", "hero_shard": "Hero Shard", "courage_essence": "Courage Essence"}
 
 const ENERGY_COLOR := Color("f7b733")
 const ENEMY_ENERGY_COLOR := Color("b06cff")
@@ -273,6 +273,11 @@ func _on_start_battle() -> void:
 	if result["winner"] == "player":
 		GameManager.add_gold(result["rewards"]["gold"])
 		GameManager.add_exp(result["rewards"]["exp"])
+		var mats: Dictionary = result["rewards"].get("materials", {})
+		for key in mats:
+			GameManager.add_progress(str(key), int(mats[key]))
+		if not mats.is_empty():
+			GameManager.save_game()
 		if stage >= int(GameManager.progress["current_campaign_stage"]):
 			GameManager.progress["current_campaign_stage"] = stage + 1
 			GameManager.save_game()
@@ -292,6 +297,9 @@ func _on_start_battle() -> void:
 		rewards_text = "💰 %d Gold\n⭐ %d EXP" % [result["rewards"]["gold"], result["rewards"]["exp"]]
 		for item in result["rewards"]["items"]:
 			rewards_text += "\n📦 " + str(ITEM_NAMES.get(item, item))
+		var mats_display: Dictionary = result["rewards"].get("materials", {})
+		for key in mats_display:
+			rewards_text += "\n💫 %d %s" % [int(mats_display[key]), str(ITEM_NAMES.get(key, key))]
 	else:
 		rewards_text = "Tidak ada reward — naikkan level hero / ganti tim, lalu coba lagi."
 	rewards_label.text = rewards_text

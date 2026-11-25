@@ -15,6 +15,8 @@ const ITEMS := [
 	{"key": "noble_insignia", "name": "Noble Insignia", "icon": "🏅", "desc": "Pity (100 = jaminan EX)"},
 	{"key": "hero_shards", "name": "Hero Shard", "icon": "💠", "desc": "Limit Break & Exchange"},
 	{"key": "star_shards", "name": "Star Shard", "icon": "⭐", "desc": "Star up hero"},
+	{"key": "courage_essence", "name": "Courage Essence", "icon": "💫", "desc": "Bahan Awaken"},
+	{"key": "soul_crystal", "name": "Soul Crystal", "icon": "🔮", "desc": "Bahan Awaken"},
 ]
 
 @onready var item_grid = $VBox/ItemGrid
