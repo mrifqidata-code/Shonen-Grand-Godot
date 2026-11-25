@@ -184,6 +184,7 @@ func _make_unit(hero: Dictionary, max_hp: int, enemy: bool, unit_px: int) -> Dic
 	view.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	view.style_id = GameManager.get_character_style()
 	view.anime_origin = str(hero.get("anime_origin", "Enemy" if enemy else "Default"))
+	view.hero_id = "" if enemy else HeroesData.template_id_of(hero)
 	view.flip_h = enemy
 	view.animate_idle = true
 	box.add_child(view)
@@ -304,6 +305,7 @@ func _play_event(event: Dictionary, delay: float) -> void:
 	var attacker_side := str(event["side"])
 	var actors: Array = player_units if attacker_side == "player" else enemy_units
 	var targets: Array = enemy_units if attacker_side == "player" else player_units
+	vs_label.text = "ROUND %d" % int(event.get("round", 1))
 	var actor_index := int(event["actor"])
 	var target_index := int(event["target"])
 	if actor_index >= actors.size() or target_index >= targets.size():

@@ -258,11 +258,29 @@ static func get_template_by_id(template_id: String) -> Dictionary:
             return t.duplicate(true)
     return {}
 
+
+## Template id for an owned hero. New saves store "template_id"; older saves
+## only have the instance id ("naruto_uzumaki_<ms>_<rand>"), so strip that.
+static func template_id_of(hero: Dictionary) -> String:
+    var stored := str(hero.get("template_id", ""))
+    if not stored.is_empty():
+        return stored
+    var raw := str(hero.get("id", ""))
+    var parts := raw.split("_")
+    if (
+        parts.size() >= 3
+        and parts[parts.size() - 1].is_valid_int()
+        and parts[parts.size() - 2].is_valid_int()
+    ):
+        return "_".join(parts.slice(0, parts.size() - 2))
+    return raw
+
 static func create_hero_from_template(template: Dictionary) -> Dictionary:
     # Unique per instance: 10x summon in the same frame must not share an id.
     var stamp = int(Time.get_unix_time_from_system() * 1000.0)
     return {
         "id": "%s_%d_%d" % [template["id"], stamp, randi() % 100000],
+        "template_id": template["id"],
         "hero_name": template["hero_name"],
         "hero_class": template["hero_class"],
         "faction": template["faction"],

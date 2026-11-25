@@ -50,6 +50,7 @@ func create_hero_card(hero: Dictionary) -> PanelContainer:
     avatar.custom_minimum_size = Vector2(128, 128)
     avatar.style_id = GameManager.get_character_style()
     avatar.anime_origin = str(hero.get("anime_origin", "Default"))
+    avatar.hero_id = HeroesData.template_id_of(hero)
     avatar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     row.add_child(avatar)
 

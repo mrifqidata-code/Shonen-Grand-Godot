@@ -17,6 +17,7 @@ const Factory := preload("res://scripts/services/character_sprite_factory.gd")
             return
         style_id = value
         _custom_texture = null
+        _custom_checked = false
         _apply_filter()
         queue_redraw()
 
@@ -26,6 +27,18 @@ const Factory := preload("res://scripts/services/character_sprite_factory.gd")
             return
         anime_origin = value
         _custom_texture = null
+        _custom_checked = false
+        queue_redraw()
+
+## Optional template id (e.g. "naruto_uzumaki") for per-hero Canva art.
+## Falls back to per-origin art, then to the procedural placeholder.
+@export var hero_id: String = "":
+    set(value):
+        if hero_id == value:
+            return
+        hero_id = value
+        _custom_texture = null
+        _custom_checked = false
         queue_redraw()
 
 ## Loop the idle clip. Leave off for static previews (cards, lists).
@@ -42,6 +55,7 @@ const Factory := preload("res://scripts/services/character_sprite_factory.gd")
         queue_redraw()
 
 var _custom_texture: Texture2D = null
+var _custom_checked := false
 var _anim := "idle"
 var _anim_elapsed := 0.0
 
@@ -105,12 +119,37 @@ func _frame_index() -> int:
 
 
 func _resolve_texture() -> Texture2D:
-    var custom_path := "res://assets/sprites/heroes/%s/%s.png" % [anime_origin, style_id]
-    if ResourceLoader.exists(custom_path):
-        if _custom_texture == null:
-            _custom_texture = load(custom_path)
+    if not _custom_checked:
+        _custom_checked = true
+        _custom_texture = _load_custom_art()
+        if _custom_texture != null:
+            _apply_custom_filter(_custom_texture)
+    if _custom_texture != null:
         return _custom_texture
     return Factory.make_anim_texture(style_id, anime_origin, _anim, _frame_index())
+
+
+## Custom art lookup: per-hero first, then per-anime origin.
+func _load_custom_art() -> Texture2D:
+    var candidates := []
+    if not hero_id.is_empty():
+        candidates.append("res://assets/sprites/heroes/%s/%s.png" % [hero_id, style_id])
+    candidates.append("res://assets/sprites/heroes/%s/%s.png" % [anime_origin, style_id])
+    for path in candidates:
+        if ResourceLoader.exists(path):
+            var tex := load(path) as Texture2D
+            if tex != null:
+                return tex
+    return null
+
+
+func _apply_custom_filter(tex: Texture2D) -> void:
+    # Nearest only while the art is at (or below) native pixel size; larger
+    # illustrations are downscaled smoothly to fit the box.
+    if Factory.is_nearest(style_id) and tex.get_width() <= Factory.native_size(style_id):
+        texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+    else:
+        texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 
 
 func _draw() -> void:
@@ -125,9 +164,12 @@ func _draw() -> void:
         return
 
     # Pixel styles must scale by whole numbers, otherwise the art looks blurry
-    # or shimmers when it moves. HD styles may scale freely.
+    # or shimmers when it moves. Oversized custom art is fitted instead so it
+    # never overflows the box.
+    var native := Factory.native_size(style_id)
+    var is_custom := _custom_texture != null
     var render_scale := side / tex_size.x
-    if Factory.is_nearest(style_id):
+    if Factory.is_nearest(style_id) and (not is_custom or tex_size.x <= native):
         render_scale = maxf(1.0, floorf(render_scale))
 
     var draw_size := tex_size * render_scale

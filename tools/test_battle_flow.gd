@@ -26,9 +26,13 @@ func _ready() -> void:
 		push_error("player team is empty")
 		_failed = true
 
+	# Always fight stage 1 so the smoke test stays cheap and repeatable, no
+	# matter how far the local save has progressed.
+	var saved_stage := int(GameManager.progress["current_campaign_stage"])
+	battle.stage_input.value = 1
+
 	await battle._on_start_battle()
 	await get_tree().process_frame
-
 	var result_panel: Control = battle.get_node("ResultPanel")
 	var title: Label = battle.get_node("ResultPanel/VBox/ResultTitle")
 	var rewards: Label = battle.get_node("ResultPanel/VBox/RewardsLabel")
@@ -82,6 +86,9 @@ func _ready() -> void:
 
 	# Restore the real save so the smoke test leaves state untouched.
 	GameManager.load_game()
+	GameManager.progress["current_campaign_stage"] = saved_stage
+	GameManager.save_game()
 	print("restored team size = ", GameManager.get_player_heroes().size())
+	print("restored campaign stage = ", GameManager.progress["current_campaign_stage"])
 
 	get_tree().quit(1 if _failed else 0)

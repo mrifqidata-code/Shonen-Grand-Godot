@@ -91,19 +91,20 @@ func _on_download_completed(file_path: String, success: bool):
         last_download_path = file_path
         log_line("✅ Downloaded: " + file_path)
         
-        # Auto-import to res:// (editor only)
+        # Park the download in art_inbox/ (editor only). The batch script then
+        # resizes it and copies it to assets/sprites/heroes/<hero_id>/<style>.png
         if Engine.is_editor_hint():
             var importer = AssetImporter.new()
             add_child(importer)
             importer.import_completed.connect(func(src, dst, ok):
                 if ok:
-                    log_line("✅ Imported to: " + dst)
+                    log_line("✅ Masuk art_inbox: " + dst + " → jalankan tools/import_canva_art.ps1")
                 else:
-                    log_line("⚠️ Import failed (run in editor)")
+                    log_line("⚠️ Import gagal (jalankan dari Editor)")
             )
-            importer.import_file(file_path, "assets/sprites/heroes/")
+            importer.import_file(file_path, "art_inbox/")
         else:
-            log_line("⚠️ Run in Godot Editor to auto-import to project")
+            log_line("Rename file ke <hero_id>.png lalu jalankan tools/import_canva_art.ps1")
         
         # Open file location
         if OS.get_name() == "Windows":

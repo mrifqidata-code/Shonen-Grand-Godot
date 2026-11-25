@@ -15,6 +15,10 @@ export/
 .DS_Store
 Thumbs.db
 
+# Canva art inbox (raw exports stay local)
+art_inbox/*
+!art_inbox/README.md
+
 # Signing secrets — never commit
 *.keystore
 *.jks

@@ -79,8 +79,18 @@ func load_game():
                 settings = data.get("settings", settings)
     _ensure_starter_heroes()
     _ensure_team_slots()
+    _ensure_hero_template_ids()
     # Older saves may hold heroes that were never placed on the team.
     _fill_empty_team_slots()
+
+func _ensure_hero_template_ids():
+    var changed := false
+    for hero in heroes:
+        if str(hero.get("template_id", "")).is_empty():
+            hero["template_id"] = HeroesData.template_id_of(hero)
+            changed = true
+    if changed:
+        save_game()
 
 func _ensure_starter_heroes():
     if not heroes.is_empty():

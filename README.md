@@ -49,6 +49,7 @@ shonen-grand-godot/
   → lihat [docs/ANIMATION_GUIDE.md](docs/ANIMATION_GUIDE.md)
 - ✅ Battle playback: HP bar per unit, angka damage melayang, crit, skip
 - ✅ Starter hero otomatis + hero hasil summon langsung masuk slot tim
+- ✅ Art per-hero dari Canva + importer batch (`tools/import_canva_art.ps1`)
 
 ## 📱 Export ke Android
 1. Project → Export → Add → Android
@@ -56,9 +57,25 @@ shonen-grand-godot/
 3. Export APK
 
 ## 🎨 Asset
-Asset akan di-generate dengan Canva AI. Placeholder karakter digambar prosedural
-(`character_sprite_factory.gd`) dan otomatis diganti art asli bila file tersedia di
-`res://assets/sprites/heroes/<Origin>/<style_id>.png`.
+Placeholder karakter digambar prosedural (`character_sprite_factory.gd`) dan
+otomatis diganti art asli bila file tersedia di:
+
+```
+res://assets/sprites/heroes/<hero_id>/<style_id>.png    # per hero (prioritas)
+res://assets/sprites/heroes/<Origin>/<style_id>.png     # per anime
+```
+
+Alur Canva:
+
+```powershell
+# 1. ekspor PNG transparan dari Canva ke art_inbox/ (nama: <hero_id>.png)
+powershell -ExecutionPolicy Bypass -File tools\import_canva_art.ps1
+godot --headless --path . --import
+powershell -ExecutionPolicy Bypass -File tools\build_android.ps1
+```
+
+Panduan lengkap: [docs/ART_CANVA_WORKFLOW.md](docs/ART_CANVA_WORKFLOW.md)
+Prompt siap pakai 15 hero: [docs/CANVA_PROMPTS.md](docs/CANVA_PROMPTS.md)
 
 Perbandingan 5 gaya: buka **🎭 Gaya Karakter** di game, atau lihat
 `assets/sprites/style_samples/`.
