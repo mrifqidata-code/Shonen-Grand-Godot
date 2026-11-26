@@ -21,6 +21,12 @@ var progress: Dictionary = {
 var heroes: Array = []
 var teams: Array = []
 
+# Gear system state.
+var gear_inventory: Array = []
+var gear_equipped: Dictionary = {}   # hero_id -> {slot: item_id}
+var glyphs: Dictionary = {}          # hero_id -> Array[glyph_id] (GLYPH_COUNT)
+var runes: Dictionary = {}            # hero_id -> Array[rune_id] (RUNE_COUNT)
+
 # PvE entry point used by the battle scene (set by the PvE hub).
 var pending_pve_mode: String = "campaign"
 
@@ -242,6 +248,204 @@ func buy_market_good(index: int) -> bool:
     save_game()
     return true
 
+func _ensure_gear_state():
+    var changed := false
+    if gear_inventory == null:
+        gear_inventory = []
+        changed = true
+    if gear_equipped == null:
+        gear_equipped = {}
+        changed = true
+    if glyphs == null:
+        glyphs = {}
+        changed = true
+    if runes == null:
+        runes = {}
+        changed = true
+    for hero in heroes:
+        var hid := str(hero.get("id", ""))
+        if not gear_equipped.has(hid):
+            gear_equipped[hid] = {}
+            changed = true
+        if not glyphs.has(hid):
+            var g := []
+            for i in range(GameConfig.GLYPH_COUNT):
+                g.append("")
+            glyphs[hid] = g
+            changed = true
+        if not runes.has(hid):
+            var r := []
+            for i in range(GameConfig.RUNE_COUNT):
+                r.append("")
+            runes[hid] = r
+            changed = true
+    if changed:
+        save_game()
+
+
+func craft_gear(slot: String) -> Dictionary:
+    var rarities := ["N", "R", "SR", "SSR", "SSR+", "UR", "EX"]
+    # Weighted: common more likely.
+    var weights := [40, 25, 18, 10, 5, 1.5, 0.5]
+    var total := 0.0
+    for w in weights:
+        total += float(w)
+    var roll := randf() * total
+    var acc := 0.0
+    var rarity := "N"
+    for i in range(weights.size()):
+        acc += float(weights[i])
+        if roll < acc:
+            rarity = rarities[i]
+            break
+    var base: Dictionary = GameConfig.EQUIP_BASE.get(rarity, GameConfig.EQUIP_BASE["N"])
+    var item := {
+        "id": "gear_%d_%d" % [int(Time.get_unix_time_from_system() * 1000.0), randi() % 100000],
+        "slot": slot,
+        "rarity": rarity,
+        "level": 1,
+        "hp": int(base["hp"]),
+        "atk": int(base["atk"]),
+        "def": int(base["def"]),
+        "spd": int(base["spd"]),
+    }
+    gear_inventory.append(item)
+    save_game()
+    return item
+
+
+func equip_gear(hero_id: String, slot: String, item_id: String) -> bool:
+    var item := _gear_by_id(item_id)
+    if item.is_empty():
+        return false
+    if str(item.get("slot", "")) != slot:
+        return false
+    if not gear_equipped.has(hero_id):
+        gear_equipped[hero_id] = {}
+    # Unequip whatever was there back to inventory? Keep simple: just assign.
+    gear_equipped[hero_id][slot] = item_id
+    save_game()
+    return true
+
+
+func unequip_gear(hero_id: String, slot: String) -> void:
+    if gear_equipped.has(hero_id):
+        gear_equipped[hero_id][slot] = ""
+        save_game()
+
+
+func upgrade_gear(item_id: String) -> bool:
+    for i in range(gear_inventory.size()):
+        if str(gear_inventory[i].get("id", "")) == item_id:
+            var item: Dictionary = gear_inventory[i]
+            var lvl := int(item.get("level", 1))
+            if lvl >= GameConfig.EQUIP_MAX_LEVEL:
+                return false
+            if not spend_gold(GameConfig.EQUIP_UPGRADE_COST):
+                return false
+            var mult := 1.0 + float(lvl) * GameConfig.EQUIP_UPGRADE_STAT
+            item["level"] = lvl + 1
+            item["hp"] = int(round(float(item["hp"]) * (1.0 + GameConfig.EQUIP_UPGRADE_STAT)))
+            item["atk"] = int(round(float(item["atk"]) * (1.0 + GameConfig.EQUIP_UPGRADE_STAT)))
+            item["def"] = int(round(float(item["def"]) * (1.0 + GameConfig.EQUIP_UPGRADE_STAT)))
+            item["spd"] = int(round(float(item["spd"]) * (1.0 + GameConfig.EQUIP_UPGRADE_STAT)))
+            gear_inventory[i] = item
+            save_game()
+            return true
+    return false
+
+
+func set_glyph(hero_id: String, slot: int, glyph_id: String) -> void:
+    if not glyphs.has(hero_id):
+        glyphs[hero_id] = []
+        for i in range(GameConfig.GLYPH_COUNT):
+            glyphs[hero_id].append("")
+    var arr: Array = glyphs[hero_id]
+    if slot < 0 or slot >= arr.size():
+        return
+    arr[slot] = glyph_id
+    glyphs[hero_id] = arr
+    save_game()
+
+
+func set_rune(hero_id: String, slot: int, rune_id: String) -> void:
+    if not runes.has(hero_id):
+        runes[hero_id] = []
+        for i in range(GameConfig.RUNE_COUNT):
+            runes[hero_id].append("")
+    var arr: Array = runes[hero_id]
+    if slot < 0 or slot >= arr.size():
+        return
+    arr[slot] = rune_id
+    runes[hero_id] = arr
+    save_game()
+
+
+func _gear_by_id(item_id: String) -> Dictionary:
+    for item in gear_inventory:
+        if str(item.get("id", "")) == item_id:
+            return item
+    return {}
+
+
+func enrich_hero(hero: Dictionary) -> Dictionary:
+    var out: Dictionary = hero.duplicate(true)
+    var hid := str(hero.get("id", ""))
+    var hp_bonus := 0
+    var atk_bonus := 0
+    var def_bonus := 0
+    var spd_bonus := 0
+    var crit_bonus := 0.0
+    # Equipped gear.
+    var eq: Dictionary = gear_equipped.get(hid, {})
+    for slot in GameConfig.EQUIP_SLOTS:
+        var item_id := str(eq.get(slot, ""))
+        if item_id.is_empty():
+            continue
+        var item := _gear_by_id(item_id)
+        if item.is_empty():
+            continue
+        hp_bonus += int(item.get("hp", 0))
+        atk_bonus += int(item.get("atk", 0))
+        def_bonus += int(item.get("def", 0))
+        spd_bonus += int(item.get("spd", 0))
+    # Glyphs.
+    var garr: Array = glyphs.get(hid, [])
+    for gid in garr:
+        if str(gid).is_empty():
+            continue
+        for gl in GameConfig.GLYPHS:
+            if str(gl["id"]) == str(gid):
+                var stat := str(gl["stat"])
+                var val := float(gl["value"])
+                match stat:
+                    "hp": hp_bonus += int(val)
+                    "atk": atk_bonus += int(val)
+                    "def": def_bonus += int(val)
+                    "spd": spd_bonus += int(val)
+                    "crit": crit_bonus += val
+    # Runes.
+    var rarr: Array = runes.get(hid, [])
+    for rid in rarr:
+        if str(rid).is_empty():
+            continue
+        for ru in GameConfig.RUNES:
+            if str(ru["id"]) == str(rid):
+                var stat := str(ru["stat"])
+                var val := int(ru["value"])
+                match stat:
+                    "hp": hp_bonus += val
+                    "atk": atk_bonus += val
+                    "def": def_bonus += val
+                    "spd": spd_bonus += val
+    out["base_hp"] = int(out.get("base_hp", 0)) + hp_bonus
+    out["base_atk"] = int(out.get("base_atk", 0)) + atk_bonus
+    out["base_def"] = int(out.get("base_def", 0)) + def_bonus
+    out["base_spd"] = int(out.get("base_spd", 0)) + spd_bonus
+    out["base_crit_rate"] = float(out.get("base_crit_rate", 0.0)) + crit_bonus
+    return out
+
+
 func _ensure_progress_keys():
     var defaults := {
         "friendship_points": 100,
@@ -287,6 +491,10 @@ func init_new_game():
     }
     heroes = []
     teams = [_default_team()]
+    gear_inventory = []
+    gear_equipped = {}
+    glyphs = {}
+    runes = {}
     save_game()
 
 func save_game():
@@ -295,6 +503,10 @@ func save_game():
         "heroes": heroes,
         "teams": teams,
         "settings": settings,
+        "gear_inventory": gear_inventory,
+        "gear_equipped": gear_equipped,
+        "glyphs": glyphs,
+        "runes": runes,
     }
     var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
     if file:
@@ -316,11 +528,16 @@ func load_game():
                 heroes = data.get("heroes", [])
                 teams = data.get("teams", [])
                 settings = data.get("settings", settings)
+                gear_inventory = data.get("gear_inventory", [])
+                gear_equipped = data.get("gear_equipped", {})
+                glyphs = data.get("glyphs", {})
+                runes = data.get("runes", {})
     _ensure_starter_heroes()
     _ensure_team_slots()
     _ensure_hero_template_ids()
     # Older saves may hold heroes that were never placed on the team.
     _fill_empty_team_slots()
+    _ensure_gear_state()
 
 func _ensure_hero_template_ids():
     var changed := false

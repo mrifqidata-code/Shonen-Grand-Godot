@@ -6,7 +6,7 @@
 
 config/name="Shonen Grand"
 config/description="Anime Idle RPG - Kumpulkan hero dari berbagai dunia anime!"
-config/version="0.8.2"
+config/version="0.8.4"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://assets/sprites/ui/icon.png"

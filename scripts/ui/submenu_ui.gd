@@ -16,6 +16,7 @@ const SCENES := {
 	"store": "res://scenes/ui/store.tscn",
 	"style": "res://scenes/ui/character_style.tscn",
 	"pve": "res://scenes/ui/pve.tscn",
+	"gear": "res://scenes/ui/gear.tscn",
 	"home": "res://scenes/main.tscn",
 	"submenu": "res://scenes/ui/submenu.tscn",
 	"decompose": "res://scenes/ui/decompose.tscn",

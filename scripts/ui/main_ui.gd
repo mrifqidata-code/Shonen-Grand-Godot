@@ -19,6 +19,7 @@ const SCENES := {
 	"bag": "res://scenes/ui/inventory.tscn",
 	"store": "res://scenes/ui/store.tscn",
 	"pve": "res://scenes/ui/pve.tscn",
+	"gear": "res://scenes/ui/gear.tscn",
 	"submenu": "res://scenes/ui/submenu.tscn",
 	"submenu": "res://scenes/ui/submenu.tscn",
 	"decompose": "res://scenes/ui/decompose.tscn",

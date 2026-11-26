@@ -117,7 +117,10 @@ func _mode() -> String:
 
 
 func _player_heroes() -> Array:
-	return GameManager.get_player_heroes()
+	var out := []
+	for h in GameManager.get_player_heroes():
+		out.append(GameManager.enrich_hero(h))
+	return out
 
 
 func _enemies_for(stage: int) -> Array:

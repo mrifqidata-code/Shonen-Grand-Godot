@@ -187,6 +187,7 @@ const SUBMENUS := {
 		"subtitle": "Cabang peningkatan global",
 		"entries": [
 			{"icon": "⭐", "name": "Grade & Awaken", "desc": "Naikkan tier hero", "goto": "heroes"},
+			{"icon": "⚔️", "name": "Gear", "desc": "Equip, glyph, rune", "goto": "gear"},
 			{"icon": "♻️", "name": "Decompose", "desc": "Ubah hero spare jadi shard", "goto": "decompose"},
 			{"icon": "🔮", "name": "Relic", "desc": "Artefak boost stat", "goto": "menu:relic"},
 			{"icon": "🐾", "name": "Pet / Beast", "desc": "Pet pendamping", "goto": "menu:pet"},
@@ -403,6 +404,52 @@ const DAILY_MARKET_SIZE := 6
 
 static func daily_market_pool() -> Array:
 	return DAILY_MARKET_POOL
+
+
+# -------------------------------------------------------------------- gear ---
+# Simplified gear system (Twilight: EquipCfg / GlyphsCfg / RuneBaseCfg). Each
+# hero has 4 equip slots + 4 glyph slots + 2 rune slots. Stats stack on top of
+# the hero's base stats.
+const EQUIP_SLOTS := ["weapon", "armor", "accessory", "boots"]
+const EQUIP_SLOT_LABELS := {
+	"weapon": "⚔️ Weapon", "armor": "🛡️ Armor",
+	"accessory": "💍 Accessory", "boots": "👟 Boots",
+}
+const GLYPH_COUNT := 4
+const RUNE_COUNT := 2
+
+# Base stats per equip rarity (hp/atk/def/spd) before the upgrade level.
+const EQUIP_BASE := {
+	"N": {"hp": 60, "atk": 18, "def": 12, "spd": 4},
+	"R": {"hp": 110, "atk": 32, "def": 22, "spd": 6},
+	"SR": {"hp": 180, "atk": 52, "def": 36, "spd": 9},
+	"SSR": {"hp": 290, "atk": 82, "def": 58, "spd": 13},
+	"SSR+": {"hp": 440, "atk": 125, "def": 88, "spd": 18},
+	"UR": {"hp": 660, "atk": 190, "def": 135, "spd": 26},
+	"EX": {"hp": 950, "atk": 275, "def": 195, "spd": 36},
+}
+const EQUIP_UPGRADE_COST := 500  # gold per level
+const EQUIP_MAX_LEVEL := 10
+const EQUIP_UPGRADE_STAT := 0.12  # +12% per level
+
+# Glyphs: id, name, stat, value (flat). Lottery rolls one of these.
+const GLYPHS := [
+	{"id": "g_atk", "name": "Attack Glyph", "stat": "atk", "value": 25},
+	{"id": "g_def", "name": "Defense Glyph", "stat": "def", "value": 20},
+	{"id": "g_hp", "name": "Vitality Glyph", "stat": "hp", "value": 120},
+	{"id": "g_spd", "name": "Speed Glyph", "stat": "spd", "value": 8},
+	{"id": "g_crit", "name": "Critical Glyph", "stat": "crit", "value": 0.03},
+]
+const GLYPH_LOTTERY_COST := 200  # gold
+
+# Runes: id, name, skill (passive id), desc.
+const RUNES := [
+	{"id": "r_power", "name": "Rune of Power", "stat": "atk", "value": 40, "desc": "+40 ATK"},
+	{"id": "r_guard", "name": "Rune of Guard", "stat": "def", "value": 35, "desc": "+35 DEF"},
+	{"id": "r_life", "name": "Rune of Life", "stat": "hp", "value": 200, "desc": "+200 HP"},
+	{"id": "r_swift", "name": "Rune of Swift", "stat": "spd", "value": 12, "desc": "+12 SPD"},
+]
+const RUNE_CRAFT_COST := 300  # gold
 
 
 static func level_cap(limit_break: int) -> int:

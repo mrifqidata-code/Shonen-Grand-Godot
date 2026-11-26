@@ -20,12 +20,16 @@ func _ready() -> void:
 
 	# Material conversion.
 	GameManager.progress["courage_essence"] = 25
+	GameManager.progress["gold"] = 100000
+	GameManager.progress["diamonds"] = 10000
 	var ok := GameManager.convert_material("courage_essence", 10)
 	print("convert 10 courage: %s" % ok)
 	if not ok:
 		push_error("convert failed"); failed = true
 
 	# Daily market.
+	GameManager.progress["market_date"] = ""
+	GameManager.progress["market_bought"] = {}
 	var goods := GameManager.market_goods()
 	print("market goods: %d" % goods.size())
 	if goods.size() != GameConfig.DAILY_MARKET_SIZE:
