@@ -18,6 +18,8 @@ const SCENES := {
 	"pve": "res://scenes/ui/pve.tscn",
 	"home": "res://scenes/main.tscn",
 	"submenu": "res://scenes/ui/submenu.tscn",
+	"decompose": "res://scenes/ui/decompose.tscn",
+	"market": "res://scenes/ui/market.tscn",
 }
 
 @onready var title_label: Label = $VBox/HeaderRow/Title

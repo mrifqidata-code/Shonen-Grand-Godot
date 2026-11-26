@@ -155,6 +155,93 @@ func advance_pve(mode: String, cleared_stage: int) -> int:
     save_game()
     return next
 
+func market_today() -> String:
+    return today_key()
+
+func decompose_heroes(rarity: String) -> int:
+    var removed := 0
+    var to_remove := []
+    for hero in heroes:
+        if str(hero.get("rarity", "")) != rarity:
+            continue
+        if _hero_in_team(str(hero.get("id", ""))):
+            continue
+        to_remove.append(str(hero.get("id", "")))
+    for hid in to_remove:
+        for i in range(heroes.size()):
+            if str(heroes[i].get("id", "")) == hid:
+                heroes.remove_at(i)
+                break
+        removed += 1
+    if removed > 0:
+        var shards := int(GameConfig.DECOMPOSE_SHARDS.get(rarity, 0)) * removed
+        add_progress("hero_shards", shards)
+        save_game()
+    return removed
+
+func _hero_in_team(hero_id: String) -> bool:
+    for t in teams:
+        for s in t.get("slots", []):
+            if str(s.get("hero_id", "")) == hero_id:
+                return true
+    return false
+
+func convert_material(key: String, amount: int) -> bool:
+    if int(progress.get(key, 0)) < amount:
+        return false
+    progress[key] = int(progress.get(key, 0)) - amount
+    var shards := int(amount / GameConfig.DECOMPOSE_MATERIAL_RATE)
+    if shards > 0:
+        add_progress("hero_shards", shards)
+    save_game()
+    return true
+
+func market_goods() -> Array:
+    if str(progress.get("market_date", "")) != today_key():
+        progress["market_date"] = today_key()
+        progress["market_bought"] = {}
+        save_game()
+    var pool := GameConfig.DAILY_MARKET_POOL.duplicate()
+    var seed := _date_seed()
+    pool.sort_custom(func(a, b):
+        return (hash(str(a["name"]) + str(seed)) % 1000) < (hash(str(b["name"]) + str(seed)) % 1000)
+    )
+    var out := []
+    var taken := 0
+    var bought: Dictionary = progress.get("market_bought", {})
+    for g in pool:
+        if taken >= GameConfig.DAILY_MARKET_SIZE:
+            break
+        var idx := out.size()
+        out.append({"good": g, "index": idx, "bought": bought.has(str(idx))})
+        taken += 1
+    return out
+
+func _date_seed() -> int:
+    var d := Time.get_date_dict_from_system()
+    return int(d["year"]) * 10000 + int(d["month"]) * 100 + int(d["day"])
+
+func buy_market_good(index: int) -> bool:
+    var goods := market_goods()
+    if index < 0 or index >= goods.size():
+        return false
+    var g: Dictionary = goods[index]["good"]
+    var bought: Dictionary = progress.get("market_bought", {})
+    if bought.has(str(index)):
+        return false
+    var key := str(g["cost_key"])
+    var cost := int(g["cost"])
+    if int(progress.get(key, 0)) < cost:
+        return false
+    progress[key] = int(progress.get(key, 0)) - cost
+    var grant: Dictionary = g.get("grant", {})
+    for k in grant:
+        progress[k] = int(progress.get(k, 0)) + int(grant[k])
+    bought[str(index)] = true
+    progress["market_bought"] = bought
+    save_game()
+    return true
+
 func _ensure_progress_keys():
     var defaults := {
         "friendship_points": 100,
@@ -165,6 +252,8 @@ func _ensure_progress_keys():
         "soul_crystal": 30,
         "maze_floor": 1,
         "trial_floor": 1,
+        "market_date": "",
+        "market_bought": {},
     }
     var changed := false
     for key in defaults:
@@ -187,6 +276,8 @@ func init_new_game():
         "hero_shards": 0,
         "courage_essence": 100,
         "soul_crystal": 30,
+        "market_date": "",
+        "market_bought": {},
         "idle_accumulated_at": Time.get_unix_time_from_system(),
         "current_campaign_stage": 1,
         "tower_floor": 1,

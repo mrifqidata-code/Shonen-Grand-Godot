@@ -1,0 +1,71 @@
+[gd_scene load_steps=2 format=3 uid="uid://market_scene"]
+
+[ext_resource type="Script" path="res://scripts/ui/market_ui.gd" id="1_market"]
+
+[node name="Market" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_market")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.04, 0.05, 0.1, 1)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+theme_override_constants/separation = 8
+
+[node name="HeaderRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="VBox/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🛒 Daily Market"
+theme_override_font_sizes/font_size = 20
+
+[node name="BackBtn" type="Button" parent="VBox/HeaderRow"]
+layout_mode = 2
+text = "← Menu"
+name = "BackBtn"
+
+[node name="RefreshLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Refresh: -"
+theme_override_colors/font_color = Color(0.68, 0.7, 0.78, 1)
+theme_override_font_sizes/font_size = 12
+name = "RefreshLabel"
+
+[node name="Scroll" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GoodsGrid" type="GridContainer" parent="VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 2
+name = "GoodsGrid"
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="StatusLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 12
+name = "StatusLabel"

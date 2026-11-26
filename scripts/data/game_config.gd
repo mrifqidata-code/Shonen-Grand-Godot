@@ -187,6 +187,7 @@ const SUBMENUS := {
 		"subtitle": "Cabang peningkatan global",
 		"entries": [
 			{"icon": "⭐", "name": "Grade & Awaken", "desc": "Naikkan tier hero", "goto": "heroes"},
+			{"icon": "♻️", "name": "Decompose", "desc": "Ubah hero spare jadi shard", "goto": "decompose"},
 			{"icon": "🔮", "name": "Relic", "desc": "Artefak boost stat", "goto": "menu:relic"},
 			{"icon": "🐾", "name": "Pet / Beast", "desc": "Pet pendamping", "goto": "menu:pet"},
 			{"icon": "🔷", "name": "Glyph & Rune", "desc": "Ukiran & rune", "goto": "menu:relic"},
@@ -372,6 +373,36 @@ static func bond_partners(hero_id: String) -> Array:
 		elif str(bond["b"]) == hero_id:
 			out.append({"id": str(bond["a"]), "tier": int(bond["tier"])})
 	return out
+
+
+# ----------------------------------------------------------------- decompose ---
+# Twilight DecomposeCfg: convert low-value heroes/items into materials. Costs are
+# economy placeholders; shard yield scales with rarity.
+const DECOMPOSE_SHARDS := {
+	"R": 5, "SR": 15, "SSR": 30, "SSR+": 50, "UR": 80, "EX": 120,
+}
+const DECOMPOSE_MATERIAL_RATE := 10  # 10 material -> 1 hero shard
+
+# Daily market (Twilight MarketGoods/SeaMarket): a small rotating shop that
+# refreshes each day. Each entry may cost gold or diamonds.
+const DAILY_MARKET_POOL := [
+	{"icon": "🎫", "name": "Ticket ×3", "cost_key": "gold", "cost": 3000, "grant": {"tickets": 3}},
+	{"icon": "📜", "name": "Advanced Scroll ×2", "cost_key": "gold", "cost": 4000, "grant": {"advanced_scrolls": 2}},
+	{"icon": "💠", "name": "Hero Shard ×20", "cost_key": "gold", "cost": 8000, "grant": {"hero_shards": 20}},
+	{"icon": "💫", "name": "Courage Essence ×30", "cost_key": "gold", "cost": 5000, "grant": {"courage_essence": 30}},
+	{"icon": "🔮", "name": "Soul Crystal ×15", "cost_key": "gold", "cost": 6000, "grant": {"soul_crystal": 15}},
+	{"icon": "🤝", "name": "Friendship ×500", "cost_key": "gold", "cost": 2500, "grant": {"friendship_points": 500}},
+	{"icon": "🎫", "name": "Ticket ×10", "cost_key": "diamonds", "cost": 500, "grant": {"tickets": 10}},
+	{"icon": "📜", "name": "Advanced Scroll ×10", "cost_key": "diamonds", "cost": 800, "grant": {"advanced_scrolls": 10}},
+	{"icon": "💠", "name": "Hero Shard ×100", "cost_key": "diamonds", "cost": 1200, "grant": {"hero_shards": 100}},
+	{"icon": "💫", "name": "Courage Essence ×80", "cost_key": "diamonds", "cost": 600, "grant": {"courage_essence": 80}},
+	{"icon": "🔮", "name": "Soul Crystal ×40", "cost_key": "diamonds", "cost": 900, "grant": {"soul_crystal": 40}},
+]
+const DAILY_MARKET_SIZE := 6
+
+
+static func daily_market_pool() -> Array:
+	return DAILY_MARKET_POOL
 
 
 static func level_cap(limit_break: int) -> int:
