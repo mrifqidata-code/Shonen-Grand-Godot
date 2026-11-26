@@ -320,6 +320,60 @@ static func submenu(menu_id: String) -> Dictionary:
 	return SUBMENUS.get(menu_id, {})
 
 
+# ------------------------------------------------------------------- bonds ---
+# Fateful Bonds: hero pairs that grant stat bonuses when fielded together.
+# tier 0/1/2 maps to BOND_TIERS (+100/+300/+500%).
+# Source: FetterBaseCfg / FetterAttrCfg (Twilight datamine).
+const BONDS := [
+	{"a": "naruto_six_path", "b": "sasuke_indra", "tier": 2},
+	{"a": "naruto_six_path", "b": "kaguya", "tier": 2},
+	{"a": "naruto_shippuden", "b": "sasuke_indra", "tier": 1},
+	{"a": "naruto_shippuden", "b": "sakura", "tier": 1},
+	{"a": "naruto_shippuden", "b": "hinata", "tier": 1},
+	{"a": "itachi", "b": "sasuke_indra", "tier": 2},
+	{"a": "madara", "b": "obito", "tier": 2},
+	{"a": "minato", "b": "obito", "tier": 1},
+	{"a": "tsunade", "b": "sakura", "tier": 1},
+	{"a": "neji", "b": "rock_lee", "tier": 1},
+	{"a": "rock_lee", "b": "might_guy", "tier": 2},
+	{"a": "shikamaru", "b": "neji", "tier": 1},
+	{"a": "gojo", "b": "sukuna", "tier": 2},
+	{"a": "gojo", "b": "yuta", "tier": 1},
+	{"a": "yuji", "b": "sukuna", "tier": 1},
+	{"a": "yuta", "b": "megumi", "tier": 1},
+	{"a": "ichigo", "b": "rukia", "tier": 2},
+	{"a": "ichigo", "b": "ulquiorra", "tier": 1},
+	{"a": "yamamoto", "b": "byakuya", "tier": 1},
+	{"a": "yamamoto", "b": "unohana", "tier": 1},
+	{"a": "aizen_final", "b": "toshiro", "tier": 1},
+	{"a": "luffy_gear5", "b": "zoro", "tier": 2},
+	{"a": "luffy_gear5", "b": "ace", "tier": 2},
+	{"a": "luffy_gear5", "b": "law", "tier": 1},
+	{"a": "sanji", "b": "zoro", "tier": 1},
+	{"a": "blackbeard", "b": "law", "tier": 1},
+	{"a": "genos", "b": "saitama_serious", "tier": 2},
+	{"a": "goku", "b": "saitama_serious", "tier": 1},
+	{"a": "kaido", "b": "big_mom", "tier": 1},
+]
+
+
+static func bond_tier(a: String, b: String) -> int:
+	for bond in BONDS:
+		if (str(bond["a"]) == a and str(bond["b"]) == b) or (str(bond["a"]) == b and str(bond["b"]) == a):
+			return int(bond["tier"])
+	return -1
+
+
+static func bond_partners(hero_id: String) -> Array:
+	var out := []
+	for bond in BONDS:
+		if str(bond["a"]) == hero_id:
+			out.append({"id": str(bond["b"]), "tier": int(bond["tier"])})
+		elif str(bond["b"]) == hero_id:
+			out.append({"id": str(bond["a"]), "tier": int(bond["tier"])})
+	return out
+
+
 static func level_cap(limit_break: int) -> int:
 	var idx := clampi(limit_break, 0, LEVEL_CAPS.size() - 1)
 	return int(LEVEL_CAPS[idx])

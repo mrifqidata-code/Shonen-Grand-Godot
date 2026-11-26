@@ -42,6 +42,7 @@ func refresh_ui():
 	_slots_box.add_child(_slot_row(slots, 0, 3))
 	_slots_box.add_child(_row_header("🏹 Belakang · DPS & support", BACK_COLOR))
 	_slots_box.add_child(_slot_row(slots, 3, 6))
+	_slots_box.add_child(_active_bonds_label(slots))
 
 	_build_hero_list(team, heroes)
 
@@ -117,6 +118,30 @@ func _slot_panel(slot: Dictionary, is_front: bool) -> PanelContainer:
 		box.add_child(empty)
 
 	return panel
+
+
+func _active_bonds_label(slots: Array) -> Label:
+	var pairs := []
+	for i in range(slots.size()):
+		for j in range(i + 1, slots.size()):
+			if slots[i]["hero_id"] == null or slots[j]["hero_id"] == null:
+				continue
+			var hi: Dictionary = GameManager.get_hero_by_id(str(slots[i]["hero_id"]))
+			var hj: Dictionary = GameManager.get_hero_by_id(str(slots[j]["hero_id"]))
+			if hi.is_empty() or hj.is_empty():
+				continue
+			var a := str(hi.get("template_id", ""))
+			var b := str(hj.get("template_id", ""))
+			var t := GameConfig.bond_tier(a, b)
+			if t >= 0:
+				var tier_name: String = ["I", "II", "III"][t]
+				pairs.append("%s–%s (T%s)" % [str(hi["hero_name"]).split(" ")[0], str(hj["hero_name"]).split(" ")[0], tier_name])
+	var label := Label.new()
+	label.text = "Bonds aktif: " + (", ".join(pairs) if not pairs.is_empty() else "—")
+	label.add_theme_font_size_override("font_size", 11)
+	label.add_theme_color_override("font_color", Color(0.85, 0.88, 0.98))
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return label
 
 
 func _build_hero_list(team: Dictionary, heroes: Array) -> void:

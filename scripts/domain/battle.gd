@@ -24,20 +24,45 @@ static func ultimate_of(hero: Dictionary) -> Dictionary:
     return {"name": ENEMY_ULT_NAME, "desc": "", "mult": ENEMY_ULT_MULT}
 
 
+static func bond_mults(hero: Dictionary, team: Array) -> Dictionary:
+    var atk := 1.0
+    var def := 1.0
+    var hp := 1.0
+    var hid := str(hero.get("template_id", ""))
+    if hid.is_empty():
+        hid = str(hero.get("id", ""))
+    for other in team:
+        if other == hero:
+            continue
+        var oid := str(other.get("template_id", ""))
+        if oid.is_empty():
+            oid = str(other.get("id", ""))
+        var t := GameConfig.bond_tier(hid, oid)
+        if t >= 0 and t < GameConfig.BOND_TIERS.size():
+            var bt: Dictionary = GameConfig.BOND_TIERS[t]
+            atk += float(bt["atk"]) / 100.0
+            def += float(bt["def"]) / 100.0
+            hp += float(bt["hp"]) / 100.0
+    return {"atk": atk, "def": def, "hp": hp}
+
+
 static func hero_stat_mult(hero: Dictionary) -> float:
     # Grade + Awaken flat stat tiers (see GameConfig).
     return GameConfig.grade_mult(int(hero.get("grade", 0))) * GameConfig.awaken_mult(int(hero.get("awaken", 0)))
 
 
-static func calculate_damage(attacker: Dictionary, defender: Dictionary, skill_mult: float = 1.0) -> Dictionary:
+static func calculate_damage(
+    attacker: Dictionary, defender: Dictionary, skill_mult: float = 1.0,
+    atk_bond: float = 1.0, def_bond: float = 1.0
+) -> Dictionary:
     var faction_adv = Faction.get_advantage(attacker["faction"], defender["faction"])
     var faction_crit = Faction.get_crit_bonus(attacker["faction"], defender["faction"])
     
     var crit_rate = min(1.0, attacker["base_crit_rate"] + faction_crit)
     var is_crit = randf() < crit_rate
     
-    var damage = attacker["base_atk"] * skill_mult * faction_adv * hero_stat_mult(attacker)
-    damage = damage * (100.0 / (100.0 + defender["base_def"]))
+    var damage = attacker["base_atk"] * skill_mult * faction_adv * hero_stat_mult(attacker) * atk_bond
+    damage = damage * (100.0 / (100.0 + defender["base_def"] * def_bond))
     
     if is_crit:
         damage *= attacker["base_crit_dmg"]
@@ -47,9 +72,12 @@ static func calculate_damage(attacker: Dictionary, defender: Dictionary, skill_m
     
     return {"damage": max(1, int(damage)), "is_crit": is_crit}
 
-static func player_max_hp(hero: Dictionary) -> int:
+static func player_max_hp(hero: Dictionary, team: Array = []) -> int:
+    var mult := 1.0
+    if not team.is_empty():
+        mult = float(bond_mults(hero, team)["hp"])
     return int(
-        float(hero["base_hp"]) * (1.0 + float(hero["star_level"]) * 0.2) * (1.0 + float(hero["limit_break"]) * 0.1) * hero_stat_mult(hero)
+        float(hero["base_hp"]) * (1.0 + float(hero["star_level"]) * 0.2) * (1.0 + float(hero["limit_break"]) * 0.1) * hero_stat_mult(hero) * mult
     )
 
 
@@ -66,7 +94,7 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
     var enemy_energy := []
 
     for h in player_team:
-        var hp := player_max_hp(h)
+        var hp := player_max_hp(h, player_team)
         player_hp.append(hp)
         player_max.append(hp)
         player_energy.append(0)
@@ -75,6 +103,15 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
         enemy_hp.append(hp)
         enemy_max.append(hp)
         enemy_energy.append(0)
+
+    # Count active Fateful Bonds in the player team (both partners fielded).
+    var bond_count := 0
+    for i in range(player_team.size()):
+        for j in range(i + 1, player_team.size()):
+            var a := str(player_team[i].get("template_id", ""))
+            var b := str(player_team[j].get("template_id", ""))
+            if GameConfig.bond_tier(a, b) >= 0:
+                bond_count += 1
 
     # Per-hit event log used by the battle playback UI (animations + damage numbers).
     var events := []
@@ -101,7 +138,9 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
             player_energy[i] = 0 if use_ult else mini(ENERGY_MAX, player_energy[i] + PLAYER_ENERGY_PER_ACTION)
             if use_ult:
                 ultimates += 1
-            var result := calculate_damage(player_team[i], enemy_team[target], mult)
+            var atk_bond := float(bond_mults(player_team[i], player_team)["atk"])
+            var def_bond := float(bond_mults(enemy_team[target], enemy_team)["def"])
+            var result := calculate_damage(player_team[i], enemy_team[target], mult, atk_bond, def_bond)
             enemy_hp[target] -= result["damage"]
             total_dealt += result["damage"]
             events.append({
@@ -122,7 +161,7 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
         # Check win
         if enemy_hp.all(func(hp): return hp <= 0):
             return _battle_result(
-                "player", round_num, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max, ultimates
+                "player", round_num, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max, ultimates, bond_count
             )
 
         # Enemy attacks
@@ -138,7 +177,9 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
             enemy_energy[i] = 0 if use_ult else mini(ENERGY_MAX, enemy_energy[i] + ENEMY_ENERGY_PER_ACTION)
             if use_ult:
                 ultimates += 1
-            var result := calculate_damage(enemy_team[i], player_team[target], mult)
+            var atk_bond := float(bond_mults(enemy_team[i], enemy_team)["atk"])
+            var def_bond := float(bond_mults(player_team[target], player_team)["def"])
+            var result := calculate_damage(enemy_team[i], player_team[target], mult, atk_bond, def_bond)
             player_hp[target] -= result["damage"]
             total_taken += result["damage"]
             events.append({
@@ -159,12 +200,12 @@ static func simulate_battle(player_team: Array, enemy_team: Array) -> Dictionary
         # Check lose
         if player_hp.all(func(hp): return hp <= 0):
             return _battle_result(
-                "enemy", round_num, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max, ultimates
+                "enemy", round_num, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max, ultimates, bond_count
             )
 
     # Timeout
     return _battle_result(
-        "enemy", max_rounds, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max, ultimates
+        "enemy", max_rounds, total_dealt, total_taken, events, player_hp, enemy_hp, player_max, enemy_max, ultimates, bond_count
     )
 
 
@@ -178,7 +219,8 @@ static func _battle_result(
     enemy_hp: Array,
     player_max: Array,
     enemy_max: Array,
-    ultimates: int = 0
+    ultimates: int = 0,
+    bond_count: int = 0
 ) -> Dictionary:
     var rewards: Dictionary
     if winner == "player":
@@ -196,6 +238,7 @@ static func _battle_result(
         "damage_dealt": dealt,
         "damage_taken": taken,
         "ultimates": ultimates,
+        "bonds": bond_count,
         "rewards": rewards,
         "events": events,
         "player_hp": player_hp,

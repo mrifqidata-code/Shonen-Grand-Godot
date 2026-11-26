@@ -295,8 +295,8 @@ func _on_start_battle() -> void:
 		result_title.text = "💀 DEFEAT"
 		result_title.add_theme_color_override("font_color", Color(0.95, 0.25, 0.3))
 
-	result_details.text = "Rounds: %d\nDamage Dealt: %d\nDamage Taken: %d\nUltimates: %d" % [
-		result["rounds"], result["damage_dealt"], result["damage_taken"], result.get("ultimates", 0)
+	result_details.text = "Rounds: %d\nDamage Dealt: %d\nDamage Taken: %d\nUltimates: %d\nBonds: %d" % [
+		result["rounds"], result["damage_dealt"], result["damage_taken"], result.get("ultimates", 0), result.get("bonds", 0)
 	]
 
 	var rewards_text := ""

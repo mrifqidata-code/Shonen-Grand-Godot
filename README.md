@@ -55,7 +55,7 @@ shonen-grand-godot/
   → [docs/TWILIGHT_DATAMINE_MECHANICS.md](docs/TWILIGHT_DATAMINE_MECHANICS.md)
 - ✅ Store (Gold/Diamond/Exchange) + Daily reward + Bag daftar resource
 - ✅ Hero Grade (7 tier) + Awaken (5 level) + Limit Break, memengaruhi stat & battle
-- ✅ Mode PvE: Campaign, Monster Tower, Maze, Mountain Trial (floor sendiri + reward khas)
+- ✅ Fateful Bonds: pasangan hero → bonus stat +100/300/500%, aktif di battle & tim
 - ✅ Art per-hero dari Canva + importer batch (`tools/import_canva_art.ps1`)
 - ✅ Art prosedural unik untuk 15 hero (warna + aksesori, tanpa file gambar)
 - ✅ Build satu perintah: `tools/ship.ps1` / double-click `BUILD_APK.cmd`

@@ -130,6 +130,13 @@ const CLASS_SKILLS := {
 }
 
 
+static func _bonds_for(id: String) -> Array:
+	var out := []
+	for p in GameConfig.bond_partners(id):
+		out.append(str(p["id"]))
+	return out
+
+
 static func _build(row: Array) -> Dictionary:
 	var cls := str(row[2])
 	var rarity := str(row[4])
@@ -155,7 +162,7 @@ static func _build(row: Array) -> Dictionary:
 		"base_crit_rate": float(mod["crit"]),
 		"base_crit_dmg": float(mod["critdmg"]),
 		"skills": skills,
-		"bonds": [],
+		"bonds": _bonds_for(str(row[0])),
 	}
 
 

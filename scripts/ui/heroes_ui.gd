@@ -191,8 +191,13 @@ func _open_detail(hero_id: String) -> void:
 	detail_name.text = str(hero.get("hero_name", "Hero"))
 	detail_name.add_theme_color_override("font_color", color)
 	var faction_name := Faction.display_name(int(hero.get("faction", 0)))
-	detail_meta.text = "%s · %s · %s\n%s" % [
-		rarity, hero.get("hero_class", "-"), hero.get("anime_origin", "-"), faction_name
+	var bond_names := []
+	for pid in hero.get("bonds", []):
+		var t := HeroesData.get_template_by_id(str(pid))
+		bond_names.append(str(t.get("hero_name", pid)) if not t.is_empty() else str(pid))
+	detail_meta.text = "%s · %s · %s\n%s\nBonds: %s" % [
+		rarity, hero.get("hero_class", "-"), hero.get("anime_origin", "-"), faction_name,
+		", ".join(bond_names) if not bond_names.is_empty() else "—"
 	]
 	var cap := GameManager.hero_level_cap(hero)
 	var grade := int(hero.get("grade", 0))
